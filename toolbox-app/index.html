@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  header {
+    font-size: 2.3rem;
+    font-weight: 700;
+    margin-bottom: 1.8rem;
+    user-select: none;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+  }
+  main {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    width: 90vw;
+    max-width: 600px;
+  }
+  button.tool-btn {
+    background: #4762c4;
+    border: none;
+    border-radius: 15px;
+    color: #eef1f7;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 14px 28px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: background 0.3s ease, transform 0.15s ease;
+    flex: 1 1 105px;
+    max-width: 150px;
+    text-align: center;
+  }
+  button.tool-btn:hover {
+    background: #5a7ee8;
+    transform: translateY(-2.5px);
+  }
+  button.tool-btn:active {
+    background: #3a4da4;
+    transform: translateY(0);
+  }
+  footer {
+    margin-top: auto;
+    padding: 12px;
+    font-size: 0.9rem;
+    color: #a1a6c9;
+    user-select: none;
+  }
+  @media (max-width: 400px) {
+    button.tool-btn {
+      padding: 12px 24px;
+      font-size: 0.9rem;
+      max-width: 130px;
+    }
+  }
+</style>
+</head>
+<body>
+<header>ツールボックス</header>
+<main>
+  <button class="tool-btn" data-tool="calendar-memo.html" aria-label="カレンダー＆メモ帳を開く">カレンダー＆メモ帳</button>
+  <button class="tool-btn" data-tool="calculator.html" aria-label="電卓を開く">電卓</button>
+  <button class="tool-btn" data-tool="date-calculator.html" aria-label="日付計算ツールを開く">日付計算ツール</button>
+  <button class="tool-btn" data-tool="bmi-calculator.html" aria-label="BMI計算ツールを開く">BMI計算ツール</button>
+  <button class="tool-btn" data-tool="world-clock.html" aria-label="世界時計ツールを開く">世界時計ツール</button>
+  <button class="tool-btn" data-tool="unit-converter.html" aria-label="単位変換ツールを開く">単位変換ツール</button>
+  <button class="tool-btn" data-tool="color-picker.html" aria-label="カラーピッカー＆コード変換ツールを開く">カラーピッカー＆コード変換ツール</button>
+  <button class="tool-btn" data-tool="timer-stopwatch.html" aria-label="タイマー＆ストップウォッチを開く">タイマー＆ストップウォッチ</button>
+  <button class="tool-btn" data-tool="text-formatter.html" aria-label="テキストフォーマッター＆カウンターを開く">テキストフォーマッター＆カウンター</button>
+</main>
+<footer>&copy; 2024 ツールボックス</footer>
+<script>
+  document.querySelectorAll('button.tool-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      const toolUrl = button.getAttribute('data-tool');
+      if (toolUrl) {
+        // 新しいタブで開く（必要ならlocation.hrefを使い同じタブで遷移も可能）
+        window.open(toolUrl, '_blank');
+      }
+    });
+  });
+</script>
+</body>
+</html>
+

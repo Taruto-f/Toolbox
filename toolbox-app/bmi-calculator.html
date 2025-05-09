@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>BMI計算ツール | ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+  }
+  #app {
+    background: #1e1e2f;
+    border-radius: 15px;
+    width: 340px;
+    max-width: 95vw;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    padding: 20px;
+  }
+  header {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    user-select: none;
+  }
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #ccd1ff;
+  }
+  input {
+    width: 100%;
+    font-size: 1rem;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 20px;
+    background: #3a3a67;
+    color: #eef1f7;
+    outline: none;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+  }
+  button {
+    width: 100%;
+    background: #7d91f6;
+    border: none;
+    color: #1e1e2f;
+    font-weight: 700;
+    padding: 12px 0;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
+    transition: background 0.3s ease;
+    margin-top: 10px;
+  }
+  button:active {
+    background: #5a68bf;
+  }
+  #result {
+    margin-top: 20px;
+    background: #2c2c48;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ccd1ff;
+    text-align: center;
+    user-select: none;
+    min-height: 2em;
+  }
+  @media (max-width: 380px), (max-height: 600px) {
+    #app {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      box-sizing: border-box;
+      padding: 14px 12px;
+    }
+    button {
+      font-size: 1rem;
+      padding: 10px 0;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="app" role="application" aria-label="BMI計算ツール">
+    <header>BMI計算ツール</header>
+    <label for="heightInput">身長 (cm)</label>
+    <input type="number" id="heightInput" min="50" max="300" placeholder="例: 170" aria-describedby="heightHelp" />
+    <label for="weightInput">体重 (kg)</label>
+    <input type="number" id="weightInput" min="10" max="500" placeholder="例: 60" aria-describedby="weightHelp" />
+    <button id="calcBtn" aria-label="BMIを計算">計算する</button>
+    <div id="result" aria-live="polite" aria-atomic="true"></div>
+  </div>
+<script>
+  (function(){
+    const heightInput = document.getElementById('heightInput');
+    const weightInput = document.getElementById('weightInput');
+    const calcBtn = document.getElementById('calcBtn');
+    const resultDiv = document.getElementById('result');
+
+    function calcBMI(heightCm, weightKg) {
+      const heightM = heightCm / 100;
+      if(heightM <= 0) return null;
+      return weightKg / (heightM * heightM);
+    }
+
+    function getBMICategory(bmi) {
+      if(bmi === null) return '';
+      if(bmi < 18.5) return 'やせ気味';
+      if(bmi < 25) return '普通体重';
+      if(bmi < 30) return '肥満（1度）';
+      if(bmi < 35) return '肥満（2度）';
+      if(bmi < 40) return '肥満（3度）';
+      return '高度の肥満（4度）';
+    }
+
+    calcBtn.addEventListener('click', () => {
+      const height = parseFloat(heightInput.value);
+      const weight = parseFloat(weightInput.value);
+
+      if(isNaN(height) || height <= 0) {
+        resultDiv.textContent = '正しい身長を入力してください';
+        return;
+      }
+      if(isNaN(weight) || weight <= 0) {
+        resultDiv.textContent = '正しい体重を入力してください';
+        return;
+      }
+
+      const bmi = calcBMI(height, weight);
+      if(bmi === null) {
+        resultDiv.textContent = 'BMIの計算に失敗しました';
+        return;
+      }
+      const roundedBMI = bmi.toFixed(2);
+      const category = getBMICategory(bmi);
+      resultDiv.textContent = `BMI: ${roundedBMI} (${category})`;
+    });
+  })();
+</script>
+</body>
+</html>
+

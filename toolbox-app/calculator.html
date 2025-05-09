@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>電卓 | ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #calculator {
+    background: #1e1e2f;
+    border-radius: 16px;
+    width: 340px;
+    max-width: 95vw;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+  }
+  header {
+    text-align: center;
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    user-select: none;
+  }
+  input#display {
+    font-size: 2rem;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    background: #3a3a5a;
+    color: #eef1f7;
+    text-align: right;
+    margin-bottom: 16px;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+  }
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  button.calc-btn {
+    background: #5567ab;
+    border: none;
+    border-radius: 12px;
+    padding: 20px 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #eef1f7;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(85,103,171,0.7);
+    transition: background 0.3s ease, transform 0.15s ease;
+  }
+  button.calc-btn:hover {
+    background: #7183d1;
+    transform: translateY(-3px);
+  }
+  button.calc-btn:active {
+    background: #3a4e93;
+    transform: translateY(0);
+  }
+  button.calc-btn.operator {
+    background: #7d91f6;
+    color: #1e1e2f;
+  }
+  button.calc-btn.operator:hover {
+    background: #a5b3ff;
+  }
+  button.calc-btn.operator:active {
+    background: #5a68bf;
+  }
+  button.calc-btn.equals {
+    grid-column: span 2;
+    background: #f68c6c;
+    color: #1e1e2f;
+  }
+  button.calc-btn.equals:hover {
+    background: #ffb79a;
+  }
+  button.calc-btn.equals:active {
+    background: #bf6b53;
+  }
+  @media (max-width: 380px), (max-height: 600px) {
+    #calculator {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      padding: 16px 10px;
+    }
+    input#display {
+      font-size: 1.6rem;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+    button.calc-btn {
+      padding: 16px 0;
+      font-size: 1.1rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="calculator" role="application" aria-label="簡単な電卓">
+    <header>電卓</header>
+    <input type="text" id="display" aria-label="計算表示" readonly value="0" />
+    <div class="buttons">
+      <button class="calc-btn" data-value="7" aria-label="7">7</button>
+      <button class="calc-btn" data-value="8" aria-label="8">8</button>
+      <button class="calc-btn" data-value="9" aria-label="9">9</button>
+      <button class="calc-btn operator" data-value="/" aria-label="割り算">÷</button>
+
+      <button class="calc-btn" data-value="4" aria-label="4">4</button>
+      <button class="calc-btn" data-value="5" aria-label="5">5</button>
+      <button class="calc-btn" data-value="6" aria-label="6">6</button>
+      <button class="calc-btn operator" data-value="*" aria-label="かけ算">×</button>
+
+      <button class="calc-btn" data-value="1" aria-label="1">1</button>
+      <button class="calc-btn" data-value="2" aria-label="2">2</button>
+      <button class="calc-btn" data-value="3" aria-label="3">3</button>
+      <button class="calc-btn operator" data-value="-" aria-label="引き算">−</button>
+
+      <button class="calc-btn" data-value="0" aria-label="0">0</button>
+      <button class="calc-btn" data-value="." aria-label="小数点">.</button>
+      <button class="calc-btn" id="clear" aria-label="クリア">C</button>
+      <button class="calc-btn operator" data-value="+" aria-label="足し算">＋</button>
+
+      <button class="calc-btn equals" id="equals" aria-label="イコール">＝</button>
+    </div>
+  </div>
+<script>
+  (function() {
+    const display = document.getElementById('display');
+    const buttons = document.querySelectorAll('button.calc-btn');
+    let currentInput = '';
+    let lastInput = '';
+    let resetNext = false;
+
+    function updateDisplay(value) {
+      display.value = value;
+    }
+
+    function clearAll() {
+      currentInput = '';
+      lastInput = '';
+      resetNext = false;
+      updateDisplay('0');
+    }
+
+    function calculate(expression) {
+      try {
+        // evalは慎重に使うが今回は単純電卓なので大丈夫な想定
+        const result = Function(`"use strict";return (${expression})`)();
+        return result;
+      } catch {
+        return 'エラー';
+      }
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-value');
+        if (btn.id === 'clear') {
+          clearAll();
+          return;
+        }
+        if (btn.id === 'equals') {
+          if (currentInput.trim().length === 0) return;
+          const res = calculate(currentInput);
+          updateDisplay(res);
+          currentInput = String(res);
+          resetNext = true;
+          return;
+        }
+        if (resetNext) {
+          // 計算結果表示後の入力は新規入力としてリセット
+          if (val && /[0-9.]/.test(val)) {
+            currentInput = val;
+          } else {
+            currentInput += val;
+          }
+          resetNext = false;
+          updateDisplay(currentInput);
+          return;
+        }
+
+        if (!val) return;
+
+        // 連続演算子入力を防ぐ
+        const operators = ['+', '-', '*', '/'];
+        const lastChar = currentInput.slice(-1);
+
+        if (operators.includes(val)) {
+          if (currentInput === '' && val !== '-') {
+            // マイナス以外の演算子は最初に入れない
+            return;
+          }
+          if (operators.includes(lastChar)) {
+            // 演算子が連続する場合は直前を置換
+            currentInput = currentInput.slice(0, -1) + val;
+            updateDisplay(currentInput);
+            return;
+          }
+        }
+        // 小数点の連続入力制御(同じ数字内に1つだけ)
+        if (val === '.') {
+          // 最後の数字の区切りを探しその後に"."があるかチェック
+          const parts = currentInput.split(/[\+\-\*\/]/);
+          if (parts.length > 0 && parts[parts.length -1].includes('.')) {
+            return; // すでに小数点がある
+          }
+          if (currentInput === '' || /[\+\-\*\/]$/.test(currentInput)) {
+            currentInput += '0.'; // 小数点入力が最初または演算子直後は0から始める
+            updateDisplay(currentInput);
+            return;
+          }
+        }
+
+        currentInput += val;
+        updateDisplay(currentInput);
+      });
+    });
+
+    clearAll();
+  })();
+</script>
+</body>
+</html>

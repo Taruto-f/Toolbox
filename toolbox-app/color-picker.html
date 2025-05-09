@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>カラーピッカー＆コード変換ツール | ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+  }
+  #app {
+    background: #1e1e2f;
+    border-radius: 15px;
+    width: 340px;
+    max-width: 95vw;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  header {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    user-select: none;
+    text-align: center;
+    width: 100%;
+  }
+  input[type="color"] {
+    width: 100%;
+    height: 60px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+  .code-display {
+    width: 100%;
+    background: #2c2c48;
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-align: center;
+    user-select: all;
+    margin-bottom: 14px;
+  }
+  .labels {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    color: #a1a6c9;
+    font-weight: 600;
+    user-select: none;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+  button.contrast-check {
+    width: 100%;
+    background: #7d91f6;
+    border: none;
+    color: #1e1e2f;
+    font-weight: 700;
+    padding: 12px 0;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
+    transition: background 0.3s ease;
+    margin-top: 10px;
+  }
+  button.contrast-check:active {
+    background: #5a68bf;
+  }
+  #contrastResult {
+    margin-top: 12px;
+    background: #2c2c48;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ccd1ff;
+    text-align: center;
+    user-select: none;
+    min-height: 2em;
+  }
+  @media (max-width: 380px), (max-height: 600px) {
+    #app {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      box-sizing: border-box;
+      padding: 14px 12px;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="app" role="application" aria-label="カラーピッカー＆コード変換ツール">
+  <header>カラーピッカー＆コード変換ツール</header>
+  <input type="color" id="colorInput" aria-label="色を選択" value="#667eea" />
+  <div class="labels">
+    <span>HEX</span><span>RGB</span><span>HSV</span>
+  </div>
+  <div id="hexCode" class="code-display" aria-live="polite" aria-atomic="true"></div>
+  <div id="rgbCode" class="code-display" aria-live="polite" aria-atomic="true"></div>
+  <div id="hsvCode" class="code-display" aria-live="polite" aria-atomic="true"></div>
+  <button class="contrast-check" id="checkContrastBtn" aria-label="コントラストチェック実行">コントラストチェック</button>
+  <div id="contrastResult" aria-live="polite" aria-atomic="true"></div>
+</div>
+<script>
+  (function(){
+    const colorInput = document.getElementById('colorInput');
+    const hexCode = document.getElementById('hexCode');
+    const rgbCode = document.getElementById('rgbCode');
+    const hsvCode = document.getElementById('hsvCode');
+    const checkContrastBtn = document.getElementById('checkContrastBtn');
+    const contrastResult = document.getElementById('contrastResult');
+
+    function hexToRgb(hex) {
+      let c = hex.substring(1);
+      if (c.length === 3) {
+        c = c.split('').map(ch => ch + ch).join('');
+      }
+      const bigint = parseInt(c, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return {r,g,b};
+    }
+    function rgbToHex(r, g, b) {
+      return "#" + [r,g,b].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+    function rgbToHsv(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      let max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, v = max;
+      let d = max - min;
+      s = max === 0 ? 0 : d / max;
+      if(max === min){
+        h = 0; // achromatic
+      }else{
+        switch(max){
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+      return {
+        h: Math.round(h * 360),
+        s: Math.round(s * 100),
+        v: Math.round(v * 100)
+      };
+    }
+    function luminance(r, g, b){
+      const a = [r, g, b].map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
+      });
+      return 0.2126*a[0] + 0.7152*a[1] + 0.0722*a[2];
+    }
+    function contrastRatio(c1, c2){
+      const lum1 = luminance(c1.r, c1.g, c1.b);
+      const lum2 = luminance(c2.r, c2.g, c2.b);
+      const brightest = Math.max(lum1, lum2);
+      const darkest = Math.min(lum1, lum2);
+      return (brightest + 0.05) / (darkest + 0.05);
+    }
+
+    function updateDisplays() {
+      const hex = colorInput.value;
+      const rgb = hexToRgb(hex);
+      const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+      hexCode.textContent = hex.toUpperCase();
+      rgbCode.textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+      hsvCode.textContent = `hsv(${hsv.h}°, ${hsv.s}%, ${hsv.v}%)`;
+      contrastResult.textContent = '';
+    }
+
+    checkContrastBtn.addEventListener('click', () => {
+      const bgColor = {r: 255, g:255, b:255}; // 白背景想定
+      const fgColor = hexToRgb(colorInput.value);
+      const ratio = contrastRatio(bgColor, fgColor);
+      let message = `コントラスト比: ${ratio.toFixed(2)}:1\n`;
+      // WCAG基準
+      if(ratio >= 7) {
+        message += 'コントラスト比はAAAレベル（最高）を満たしています。';
+      } else if(ratio >= 4.5) {
+        message += 'コントラスト比はAAレベルを満たしています。標準のテキスト表示に適切です。';
+      } else if(ratio >= 3) {
+        message += 'コントラスト比は最低限の準拠レベルを満たしていますが、小さいテキストには適していません。';
+      } else {
+        message += 'コントラスト比が低く、テキスト表示には不適切です。色を調整してください。';
+      }
+      contrastResult.textContent = message;
+    });
+
+    colorInput.addEventListener('input', updateDisplays);
+
+    // 初期表示
+    updateDisplays();
+  })();
+</script>
+</body>
+</html>
+

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>世界時計ツール | ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+  }
+  #app {
+    background: #1e1e2f;
+    border-radius: 15px;
+    width: 340px;
+    max-width: 95vw;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    padding: 20px;
+  }
+  header {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    user-select: none;
+  }
+  select {
+    width: 100%;
+    font-size: 1rem;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 20px;
+    background: #3a3a67;
+    color: #eef1f7;
+    outline: none;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+  }
+  #clockList {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .clock-item {
+    background: #2c2c48;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .city-name {
+    flex: 1 1 auto;
+  }
+  .time {
+    font-family: 'Courier New', Courier, monospace;
+    flex: 0 0 auto;
+  }
+  button#addCity {
+    width: 100%;
+    background: #7d91f6;
+    border: none;
+    color: #1e1e2f;
+    font-weight: 700;
+    padding: 12px 0;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
+    transition: background 0.3s ease;
+    margin-bottom: 20px;
+  }
+  button#addCity:active {
+    background: #5a68bf;
+  }
+  button.remove-btn {
+    background: transparent;
+    border: none;
+    color: #f86868;
+    font-size: 1.2rem;
+    cursor: pointer;
+    user-select: none;
+    margin-left: 10px;
+    transition: color 0.3s ease;
+  }
+  button.remove-btn:hover {
+    color: #ff8484;
+  }
+  @media (max-width: 380px), (max-height: 600px) {
+    #app {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      box-sizing: border-box;
+      padding: 14px 12px;
+      max-height: none;
+    }
+    button#addCity {
+      font-size: 1rem;
+      padding: 10px 0;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="app" role="application" aria-label="世界時計ツール">
+    <header>世界時計ツール</header>
+    <select id="citySelect" aria-label="追加する都市を選択">
+      <option value="Asia/Tokyo">東京 (Japan)</option>
+      <option value="Asia/Seoul">ソウル (Korea)</option>
+      <option value="Asia/Shanghai">上海 (China)</option>
+      <option value="Europe/London">ロンドン (UK)</option>
+      <option value="Europe/Paris">パリ (France)</option>
+      <option value="Europe/Berlin">ベルリン (Germany)</option>
+      <option value="America/New_York">ニューヨーク (USA)</option>
+      <option value="America/Chicago">シカゴ (USA)</option>
+      <option value="America/Los_Angeles">ロサンゼルス (USA)</option>
+      <option value="Australia/Sydney">シドニー (Australia)</option>
+      <option value="Pacific/Honolulu">ホノルル (Hawaii)</option>
+      <option value="Asia/Kolkata">コルカタ (India)</option>
+      <option value="Asia/Dubai">ドバイ (UAE)</option>
+      <option value="Africa/Johannesburg">ヨハネスブルグ (South Africa)</option>
+    </select>
+    <button id="addCity" aria-label="選択した都市を追加">都市を追加</button>
+    <div id="clockList" aria-live="polite" aria-atomic="true" aria-label="追加された都市の時計リスト"></div>
+  </div>
+<script>
+  (function(){
+    const citySelect = document.getElementById('citySelect');
+    const addCityBtn = document.getElementById('addCity');
+    const clockList = document.getElementById('clockList');
+    // 保存用ローカルストレージキー
+    const STORAGE_KEY = 'worldClockCities';
+
+    let cities = [];
+
+    function loadCities() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if(stored) {
+        try {
+          cities = JSON.parse(stored);
+          if(!Array.isArray(cities)) cities = [];
+        } catch {
+          cities = [];
+        }
+      }
+    }
+    function saveCities() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cities));
+    }
+
+    function formatTime(date, timeZone) {
+      return date.toLocaleTimeString('ja-JP', {
+        timeZone,
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    }
+    function formatDate(date, timeZone) {
+      return date.toLocaleDateString('ja-JP', {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    }
+
+    function updateClocks() {
+      clockList.innerHTML = '';
+      const now = new Date();
+      cities.forEach((city, idx) => {
+        const cityDiv = document.createElement('div');
+        cityDiv.classList.add('clock-item');
+        const cityNameSpan = document.createElement('span');
+        cityNameSpan.classList.add('city-name');
+        cityNameSpan.textContent = city.name;
+        const timeSpan = document.createElement('span');
+        timeSpan.classList.add('time');
+        const localTime = formatTime(now, city.timeZone);
+        const localDate = formatDate(now, city.timeZone);
+        timeSpan.textContent = `${localDate} ${localTime}`;
+        const removeBtn = document.createElement('button');
+        removeBtn.classList.add('remove-btn');
+        removeBtn.setAttribute('aria-label', `${city.name}の時計をリストから削除`);
+        removeBtn.textContent = '✕';
+        removeBtn.addEventListener('click', () => {
+          cities.splice(idx,1);
+          saveCities();
+          updateClocks();
+        });
+
+        cityDiv.appendChild(cityNameSpan);
+        cityDiv.appendChild(timeSpan);
+        cityDiv.appendChild(removeBtn);
+        clockList.appendChild(cityDiv);
+      });
+      if(cities.length === 0){
+        const hint = document.createElement('div');
+        hint.textContent = '都市を追加してください';
+        hint.style.textAlign = 'center';
+        hint.style.color = '#a1a6c9';
+        clockList.appendChild(hint);
+      }
+    }
+
+    function addSelectedCity() {
+      const timeZone = citySelect.value;
+      const cityName = citySelect.options[citySelect.selectedIndex].text;
+      // 重複チェック
+      if(cities.some(c => c.timeZone === timeZone)) {
+        alert('すでに追加されています');
+        return;
+      }
+      cities.push({name: cityName, timeZone});
+      saveCities();
+      updateClocks();
+    }
+
+    addCityBtn.addEventListener('click', addSelectedCity);
+
+    // 初期読み込み
+    loadCities();
+    updateClocks();
+
+    // 1秒毎に更新
+    setInterval(updateClocks, 1000);
+  })();
+</script>
+</body>
+</html>
+

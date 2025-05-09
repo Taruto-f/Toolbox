@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>日付計算ツール | ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+  }
+  #app {
+    background: #1e1e2f;
+    border-radius: 15px;
+    width: 340px;
+    max-width: 95vw;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    padding: 20px;
+  }
+  header {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    user-select: none;
+  }
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #ccd1ff;
+  }
+  input, select {
+    width: 100%;
+    font-size: 1rem;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 20px;
+    background: #3a3a67;
+    color: #eef1f7;
+    outline: none;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+  }
+  button {
+    width: 100%;
+    background: #7d91f6;
+    border: none;
+    color: #1e1e2f;
+    font-weight: 700;
+    padding: 12px 0;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
+    transition: background 0.3s ease;
+    margin-top: 10px;
+  }
+  button:active {
+    background: #5a68bf;
+  }
+  #result {
+    margin-top: 20px;
+    background: #2c2c48;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ccd1ff;
+    text-align: center;
+    user-select: none;
+    min-height: 2em;
+  }
+  @media (max-width: 380px), (max-height: 600px) {
+    #app {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      box-sizing: border-box;
+      padding: 14px 12px;
+    }
+    button {
+      font-size: 1rem;
+      padding: 10px 0;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="app" role="application" aria-label="日付計算ツール">
+    <header>日付計算ツール</header>
+    <label for="baseDate">基準日</label>
+    <input type="date" id="baseDate" aria-describedby="baseDateHelp" />
+    <label for="offsetNum">増減日数（マイナス可）</label>
+    <input type="number" id="offsetNum" value="0" aria-describedby="offsetHelp" />
+    <button id="calcBtn" aria-label="計算実行">計算する</button>
+    <div id="result" aria-live="polite" aria-atomic="true"></div>
+  </div>
+<script>
+  (function(){
+    const baseDateInput = document.getElementById('baseDate');
+    const offsetInput = document.getElementById('offsetNum');
+    const calcBtn = document.getElementById('calcBtn');
+    const resultDiv = document.getElementById('result');
+
+    // 初期値を今日の日付にセット
+    function formatDateYMD(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth()+1).padStart(2,'0');
+      const d = String(date.getDate()).padStart(2,'0');
+      return `${y}-${m}-${d}`;
+    }
+    baseDateInput.value = formatDateYMD(new Date());
+
+    function calcTargetDate(base, offset) {
+      const newDate = new Date(base);
+      newDate.setDate(newDate.getDate() + offset);
+      return newDate;
+    }
+
+    function displayResult(date) {
+      const ye = date.getFullYear();
+      const mo = String(date.getMonth()+1).padStart(2,'0');
+      const da = String(date.getDate()).padStart(2,'0');
+      resultDiv.textContent = `${ye}年${mo}月${da}日 です`;
+    }
+
+    calcBtn.addEventListener('click', () => {
+      const baseStr = baseDateInput.value;
+      let offset = Number(offsetInput.value);
+      if(!baseStr) {
+        resultDiv.textContent = '基準日を正しく入力してください';
+        return;
+      }
+      if (isNaN(offset)) {
+        resultDiv.textContent = '増減日数を正しく入力してください';
+        return;
+      }
+      const baseDate = new Date(baseStr + 'T00:00:00');
+      if (isNaN(baseDate.getTime())) {
+        resultDiv.textContent = '基準日を正しく入力してください';
+        return;
+      }
+      const target = calcTargetDate(baseDate, offset);
+      displayResult(target);
+    });
+  })();
+</script>
+</body>
+</html>
+
