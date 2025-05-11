@@ -33,7 +33,10 @@
 
 ## デプロイ
 GitHub Pagesを使って簡単にホスティング可能です。  
-公開URL例: `https://username.github.io/repository-name/`
+公開URL例: `[https://taruto-f.github.io/Toolbox/toolbox-app/]`
+
+## 更新履歴
+5/11（日）:カレンダー&メモと電卓に機能追加
 
 ## ライセンス
 MIT License
