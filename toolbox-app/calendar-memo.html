@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>カレンダー＆メモ帳 | ツールボックス</title>
+<title>カレンダー＆メモ帳（検索機能付き） | ツールボックス</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
   * {
@@ -22,24 +22,79 @@
   #app {
     background: #1e1e2f;
     border-radius: 15px;
-    width: 340px;
+    width: 360px;
     max-width: 95vw;
-    max-height: 580px;
+    max-height: 630px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
     display: flex;
     flex-direction: column;
+    padding: 12px 14px 10px;
   }
   header {
     text-align: center;
-    padding: 12px 0;
-    background: #3a3a5a;
-    border-radius: 15px 15px 0 0;
+    padding: 10px 0 12px 0;
     font-size: 1.5rem;
     font-weight: 700;
     user-select: none;
   }
+  .search-section {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  #searchInput {
+    flex: 1;
+    border-radius: 10px;
+    border: none;
+    padding: 8px 12px;
+    font-size: 1rem;
+    font-family: 'Roboto Slab', serif;
+    background: #3a3a67;
+    color: #eef1f7;
+    outline: none;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+  }
+  #searchBtn {
+    background: #7d91f6;
+    border: none;
+    color: #1e1e2f;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
+    transition: background 0.3s ease;
+  }
+  #searchBtn:active {
+    background: #5a68bf;
+  }
+  .search-results {
+    max-height: 110px;
+    overflow-y: auto;
+    background: #2c2c48;
+    border-radius: 10px;
+    padding: 6px 4px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    user-select: none;
+  }
+  .search-item {
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #ccd1ff;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    transition: background 0.25s ease;
+  }
+  .search-item:hover, .search-item:focus {
+    background: #5567ab;
+    outline: none;
+  }
   .calendar {
-    padding: 10px 12px;
+    padding: 8px 12px 12px 12px;
     background: #2c2c48;
     border-radius: 0 0 15px 15px;
     flex-shrink: 0;
@@ -48,7 +103,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
   }
   .month-nav button {
     background: #5567ab;
@@ -57,11 +112,10 @@
     font-weight: 600;
     font-size: 1.2rem;
     border-radius: 6px;
-    padding: 6px 10px;
+    padding: 4px 10px;
     cursor: pointer;
     user-select: none;
     transition: background 0.3s ease;
-    margin-left: 4px;
   }
   .month-nav button:active {
     background: #3d4e8c;
@@ -76,7 +130,7 @@
     text-align: center;
     font-weight: 700;
     color: #a1a6c9;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     user-select: none;
   }
   .weekdays div {
@@ -89,7 +143,7 @@
     gap: 4px;
   }
   .day {
-    padding: 8px 0;
+    padding: 6px 0;
     border-radius: 8px;
     cursor: pointer;
     user-select: none;
@@ -113,18 +167,18 @@
     cursor: default;
     pointer-events: none;
   }
-  main {
+  main > .memo-section {
     flex: 1;
     display: flex;
     flex-direction: column;
     background: #292a40;
     border-radius: 0 0 15px 15px;
-    padding: 12px;
+    padding: 10px 12px 14px 12px;
   }
   .memo-date {
     font-weight: 700;
     font-size: 1.1rem;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-align: center;
     user-select: none;
     color: #ccd1ff;
@@ -141,16 +195,15 @@
     color: #eef1f7;
     outline: none;
     box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
   textarea::placeholder {
     color: #a1a6c9;
   }
   footer {
-    margin-top: 0;
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 12px;
   }
   button.save-btn, button.load-btn {
     background: #7d91f6;
@@ -172,38 +225,52 @@
     background: #6cd17d;
     color: #1e1e2f;
   }
-  button.load-btn:hover {
-    background: #81e993;
-  }
-  @media (max-width: 380px), (max-height: 600px) {
+  @media (max-width: 380px), (max-height: 630px) {
     #app {
       width: 100vw;
       height: 100vh;
       border-radius: 0;
       max-height: none;
       max-width: none;
+      padding: 10px 8px 8px;
     }
-    main {
-      padding: 8px 6px;
+    .search-section {
+      flex-direction: column;
+      gap: 6px;
     }
-    .month-nav button {
-      padding: 4px 8px;
-      font-size: 1rem;
-      margin-left: 2px;
+    #searchBtn {
+      padding: 8px 12px;
+      font-size: 0.95rem;
     }
-    .memo-date {
-      font-size: 1rem;
+    .search-results {
+      max-height: 100px;
+      font-size: 0.85rem;
+    }
+    .day {
+      padding: 5px 0;
+      font-size: 0.9rem;
+    }
+    main > .memo-section {
+      padding: 8px 8px 12px 8px;
     }
     button.save-btn, button.load-btn {
-      padding: 6px 12px;
+      padding: 6px 14px;
       font-size: 0.9rem;
     }
   }
 </style>
 </head>
 <body>
-  <div id="app" role="application" aria-label="カレンダーとメモ帳">
+  <div id="app" role="application" aria-label="カレンダーとメモ帳（検索付き）">
     <header>カレンダー＆メモ帳</header>
+    <div class="search-section">
+      <input type="search" id="searchInput" aria-label="メモ検索キーワード入力" placeholder="メモをキーワードで検索" />
+      <button id="searchBtn" aria-label="メモ検索実行">検索</button>
+    </div>
+    <nav class="search-results" id="searchResults" aria-label="検索結果リスト" tabindex="0" role="listbox"
+         aria-live="polite" aria-atomic="true">
+      <!-- 検索結果一覧がここに入る -->
+    </nav>
     <section class="calendar" aria-label="カレンダー">
       <nav class="month-nav">
         <button type="button" id="prevMonth" aria-label="前の月">‹</button>
@@ -215,7 +282,7 @@
       </div>
       <div class="days" role="grid" aria-label="日付選択"></div>
     </section>
-    <main>
+    <main class="memo-section">
       <div class="memo-date" aria-live="polite" aria-atomic="true"></div>
       <textarea id="memo" placeholder="ここにメモを入力してください…" aria-label="メモ入力欄"></textarea>
       <footer>
@@ -235,13 +302,16 @@
     const memoInput = document.getElementById('memo');
     const saveBtn = document.getElementById('saveMemo');
     const loadBtn = document.getElementById('loadMemo');
-  
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const searchResults = document.getElementById('searchResults');
+
     let today = new Date();
     today.setHours(0,0,0,0);
     let selectedDate = new Date(today);
     let displayedYear = selectedDate.getFullYear();
     let displayedMonth = selectedDate.getMonth();
-  
+
     function formatDateKey(date) {
       return `memo_${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     }
@@ -262,6 +332,10 @@
       setTimeout(() => {
         saveBtn.textContent = 'メモを保存';
       }, 1500);
+      // 検索結果を更新
+      if(searchInput.value.trim() !== '') {
+        performSearch();
+      }
     }
     function reloadMemo() {
       loadMemo(selectedDate);
@@ -270,27 +344,28 @@
         loadBtn.textContent = '読み込み';
       }, 1500);
     }
+
     function renderCalendar(year, month) {
       daysContainer.innerHTML = '';
       monthNameElem.textContent = `${year}年 ${monthNames[month]}`;
-  
+
       let firstDay = new Date(year, month, 1);
       let lastDay = new Date(year, month+1, 0);
       let firstWeekday = firstDay.getDay();
       let daysInMonth = lastDay.getDate();
-  
+
       for(let i=0; i<firstWeekday; i++) {
         const blank = document.createElement('div');
         blank.classList.add('day', 'disabled');
         daysContainer.appendChild(blank);
       }
-  
+
       for(let d=1; d<=daysInMonth; d++) {
         const dateElem = document.createElement('div');
         dateElem.textContent = d;
         dateElem.classList.add('day');
         const dateObj = new Date(year, month, d);
-  
+
         if(dateObj.getTime() === today.getTime()) {
           dateElem.classList.add('today');
         }
@@ -309,7 +384,7 @@
             selectDate(dateObj);
           }
         });
-  
+
         daysContainer.appendChild(dateElem);
       }
       updateMemoDate();
@@ -320,11 +395,78 @@
       renderCalendar(displayedYear, displayedMonth);
       updateMemoDate();
       loadMemo(date);
+      // 検索入力クリアして検索結果非表示
+      searchInput.value = '';
+      clearSearchResults();
     }
     function updateMemoDate() {
       memoDateElem.textContent = `メモ：${selectedDate.getFullYear()}年${selectedDate.getMonth()+1}月${selectedDate.getDate()}日`;
     }
-  
+
+    // 全メモ取得
+    function getAllMemos() {
+      const memos = [];
+      for(let i=0; i<localStorage.length; i++){
+        const key = localStorage.key(i);
+        if(!key.startsWith('memo_')) continue;
+        const dateStr = key.slice(5);
+        const text = localStorage.getItem(key);
+        if(text && text.trim().length > 0){
+          memos.push({ dateStr, text });
+        }
+      }
+      // 日付順（新しい順）
+      memos.sort((a,b) => (new Date(b.dateStr)) - (new Date(a.dateStr)));
+      return memos;
+    }
+
+    // 検索表示クリア
+    function clearSearchResults() {
+      searchResults.innerHTML = '';
+    }
+
+    // 検索実行
+    function performSearch() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      clearSearchResults();
+      let memos = getAllMemos();
+      if(keyword !== ''){
+        memos = memos.filter(m => m.text.toLowerCase().includes(keyword));
+      }
+      if(memos.length === 0) {
+        const noResult = document.createElement('div');
+        noResult.textContent = '該当するメモはありません';
+        noResult.style.textAlign = 'center';
+        noResult.style.color = '#a1a6c9';
+        noResult.style.padding = '8px 0';
+        searchResults.appendChild(noResult);
+        return;
+      }
+      memos.forEach(memo => {
+        const item = document.createElement('div');
+        item.className = 'search-item';
+        const preview = memo.text.length > 30 ? memo.text.slice(0,30) + '…' : memo.text;
+        item.textContent = `${memo.dateStr} ： ${preview}`;
+        item.tabIndex = 0;
+        item.setAttribute('role', 'option');
+        item.addEventListener('click', () => {
+          const parts = memo.dateStr.split('-');
+          const dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+          selectDate(dateObj);
+          searchInput.value = '';
+          clearSearchResults();
+          searchInput.focus();
+        });
+        item.addEventListener('keydown', (e) => {
+          if(e.key === 'Enter' || e.key === ' '){
+            e.preventDefault();
+            item.click();
+          }
+        });
+        searchResults.appendChild(item);
+      });
+    }
+
     prevBtn.addEventListener('click', () => {
       if(displayedMonth === 0){
         displayedMonth = 11;
@@ -338,6 +480,8 @@
         updateMemoDate();
         loadMemo(selectedDate);
       }
+      searchInput.value = '';
+      clearSearchResults();
     });
     nextBtn.addEventListener('click', () => {
       if(displayedMonth === 11){
@@ -352,6 +496,8 @@
         updateMemoDate();
         loadMemo(selectedDate);
       }
+      searchInput.value = '';
+      clearSearchResults();
     });
     saveBtn.addEventListener('click', () => {
       saveMemo();
@@ -359,7 +505,17 @@
     loadBtn.addEventListener('click', () => {
       reloadMemo();
     });
-  
+    searchBtn.addEventListener('click', () => {
+      performSearch();
+    });
+    searchInput.addEventListener('keydown', e => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        performSearch();
+      }
+    });
+
+    // 初期表示
     renderCalendar(displayedYear, displayedMonth);
   })();
 </script>

@@ -1,3 +1,4 @@
+<![CDATA[
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -36,7 +37,7 @@
     margin-bottom: 16px;
     user-select: none;
   }
-  input#display {
+  #display {
     font-size: 2rem;
     padding: 12px 16px;
     border-radius: 12px;
@@ -94,6 +95,46 @@
   button.calc-btn.equals:active {
     background: #bf6b53;
   }
+  #historyContainer {
+    margin-top: 16px;
+    background: #2c2c48;
+    border-radius: 12px;
+    padding: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    color: #ccd1ff;
+  }
+  .history-item {
+    padding: 4px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+  }
+  .history-item:hover {
+    background: #5567ab;
+  }
+  #clearHistoryBtn {
+    margin-top: 10px;
+    background: #dc3545;
+    border: none;
+    width: 100%;
+    padding: 8px 0;
+    font-weight: 700;
+    border-radius: 12px;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(220, 53, 69, 0.7);
+    transition: background 0.3s ease;
+  }
+  #clearHistoryBtn:hover {
+    background: #c82333;
+  }
+  #clearHistoryBtn:active {
+    background: #961b23;
+  }
   @media (max-width: 380px), (max-height: 600px) {
     #calculator {
       width: 100vw;
@@ -101,7 +142,7 @@
       border-radius: 0;
       padding: 16px 10px;
     }
-    input#display {
+    #display {
       font-size: 1.6rem;
       padding: 10px 14px;
       margin-bottom: 12px;
@@ -140,14 +181,18 @@
 
       <button class="calc-btn equals" id="equals" aria-label="イコール">＝</button>
     </div>
+    <div id="historyContainer" aria-label="計算履歴" tabindex="0"></div>
+    <button id="clearHistoryBtn" aria-label="履歴をクリア">履歴をクリア</button>
   </div>
 <script>
   (function() {
     const display = document.getElementById('display');
     const buttons = document.querySelectorAll('button.calc-btn');
+    const historyContainer = document.getElementById('historyContainer');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
     let currentInput = '';
-    let lastInput = '';
     let resetNext = false;
+    let history = [];
 
     function updateDisplay(value) {
       display.value = value;
@@ -155,19 +200,49 @@
 
     function clearAll() {
       currentInput = '';
-      lastInput = '';
       resetNext = false;
       updateDisplay('0');
     }
 
     function calculate(expression) {
       try {
-        // evalは慎重に使うが今回は単純電卓なので大丈夫な想定
+        // 安全な実行のためFunctionを利用
         const result = Function(`"use strict";return (${expression})`)();
         return result;
       } catch {
         return 'エラー';
       }
+    }
+
+    function renderHistory() {
+      historyContainer.innerHTML = '';
+      if(history.length === 0){
+        const noHist = document.createElement('div');
+        noHist.textContent = '履歴はありません';
+        noHist.style.color = '#a1a6c9';
+        noHist.style.textAlign = 'center';
+        historyContainer.appendChild(noHist);
+        return;
+      }
+      history.slice().reverse().forEach(item => {
+        const div = document.createElement('div');
+        div.classList.add('history-item');
+        div.textContent = `${item.expr} = ${item.result}`;
+        div.tabIndex = 0;
+        div.setAttribute('role', 'button');
+        div.addEventListener('click', () => {
+          resetNext = false;
+          currentInput = item.expr;
+          updateDisplay(currentInput);
+        });
+        div.addEventListener('keydown', e => {
+          if(e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            div.click();
+          }
+        });
+        historyContainer.appendChild(div);
+      });
     }
 
     buttons.forEach(btn => {
@@ -181,12 +256,15 @@
           if (currentInput.trim().length === 0) return;
           const res = calculate(currentInput);
           updateDisplay(res);
+          if(res !== 'エラー'){
+            history.push({expr: currentInput, result: res});
+            renderHistory();
+          }
           currentInput = String(res);
           resetNext = true;
           return;
         }
         if (resetNext) {
-          // 計算結果表示後の入力は新規入力としてリセット
           if (val && /[0-9.]/.test(val)) {
             currentInput = val;
           } else {
@@ -196,46 +274,40 @@
           updateDisplay(currentInput);
           return;
         }
-
         if (!val) return;
-
-        // 連続演算子入力を防ぐ
         const operators = ['+', '-', '*', '/'];
         const lastChar = currentInput.slice(-1);
-
         if (operators.includes(val)) {
-          if (currentInput === '' && val !== '-') {
-            // マイナス以外の演算子は最初に入れない
-            return;
-          }
+          if (currentInput === '' && val !== '-') return;
           if (operators.includes(lastChar)) {
-            // 演算子が連続する場合は直前を置換
             currentInput = currentInput.slice(0, -1) + val;
             updateDisplay(currentInput);
             return;
           }
         }
-        // 小数点の連続入力制御(同じ数字内に1つだけ)
         if (val === '.') {
-          // 最後の数字の区切りを探しその後に"."があるかチェック
           const parts = currentInput.split(/[\+\-\*\/]/);
-          if (parts.length > 0 && parts[parts.length -1].includes('.')) {
-            return; // すでに小数点がある
-          }
+          if (parts.length > 0 && parts[parts.length -1].includes('.')) return;
           if (currentInput === '' || /[\+\-\*\/]$/.test(currentInput)) {
-            currentInput += '0.'; // 小数点入力が最初または演算子直後は0から始める
+            currentInput += '0.';
             updateDisplay(currentInput);
             return;
           }
         }
-
         currentInput += val;
         updateDisplay(currentInput);
       });
     });
 
+    clearHistoryBtn.addEventListener('click', () => {
+      history = [];
+      renderHistory();
+    });
+
     clearAll();
+    renderHistory();
   })();
 </script>
 </body>
 </html>
+]]>
