@@ -1,163 +1,143 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>日付計算ツール | ツールボックス</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    margin: 0;
-    font-family: 'Roboto Slab', serif;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #eef1f7;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 12px;
-  }
-  #app {
-    background: #1e1e2f;
-    border-radius: 15px;
-    width: 340px;
-    max-width: 95vw;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    padding: 20px;
-  }
-  header {
-    text-align: center;
-    font-size: 1.6rem;
-    font-weight: 700;
-    margin-bottom: 16px;
-    user-select: none;
-  }
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 700;
-    color: #ccd1ff;
-  }
-  input, select {
-    width: 100%;
-    font-size: 1rem;
-    padding: 8px 10px;
-    border-radius: 10px;
-    border: none;
-    margin-bottom: 20px;
-    background: #3a3a67;
-    color: #eef1f7;
-    outline: none;
-    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
-  }
-  button {
-    width: 100%;
-    background: #7d91f6;
-    border: none;
-    color: #1e1e2f;
-    font-weight: 700;
-    padding: 12px 0;
-    font-size: 1.2rem;
-    border-radius: 12px;
-    cursor: pointer;
-    user-select: none;
-    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
-    transition: background 0.3s ease;
-    margin-top: 10px;
-  }
-  button:active {
-    background: #5a68bf;
-  }
-  #result {
-    margin-top: 20px;
-    background: #2c2c48;
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #ccd1ff;
-    text-align: center;
-    user-select: none;
-    min-height: 2em;
-  }
-  @media (max-width: 380px), (max-height: 600px) {
-    #app {
-      width: 100vw;
-      height: 100vh;
-      border-radius: 0;
-      box-sizing: border-box;
-      padding: 14px 12px;
-    }
-    button {
-      font-size: 1rem;
-      padding: 10px 0;
-    }
-  }
-</style>
-</head>
-<body>
-  <div id="app" role="application" aria-label="日付計算ツール">
-    <header>日付計算ツール</header>
-    <label for="baseDate">基準日</label>
-    <input type="date" id="baseDate" aria-describedby="baseDateHelp" />
-    <label for="offsetNum">増減日数（マイナス可）</label>
-    <input type="number" id="offsetNum" value="0" aria-describedby="offsetHelp" />
-    <button id="calcBtn" aria-label="計算実行">計算する</button>
-    <div id="result" aria-live="polite" aria-atomic="true"></div>
-  </div>
+  <head> <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>日付計算ツール | ツールボックス</title>
+    <style> @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap'); * { box-sizing: border-box; } body { margin: 0; font-family: 'Roboto Slab', serif; background: linear-gradient(135deg, #667eea, #764ba2); color: #eef1f7; height: 100vh; display: flex; justify-content: center; align-items: center; } #app { background: #1e1e2f; border-radius: 15px; width: 360px; max-width: 95vw; box-shadow: 0 8px 16px rgba(0,0,0,0.4); display: flex; flex-direction: column; padding: 20px; } header { text-align: center; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px; user-select: none; } .date-input { display: flex; gap: 8px; margin-bottom: 12px; } input[type="date"] { border-radius: 10px; border: none; padding: 8px; font-size: 1rem; background: #3a3a67; color: #eef1f7; outline: none; box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4; flex: 1; } button.add-btn { background: #7d91f6; border: none; color: #1e1e2f; font-weight: 700; padding: 8px 12px; border-radius: 12px; cursor: pointer; user-select: none; box-shadow: 0 3px 6px rgba(125,145,246,0.7); transition: background 0.3s ease; } button.add-btn:hover { background: #a5b3ff; } button.remove-btn { background: #dc3545; border: none; color: #fff; border-radius: 8px; padding: 4px 8px; cursor: pointer; user-select: none; transition: background 0.3s ease; margin-left: 10px; flex-shrink: 0; } button.remove-btn:hover { background: #c82333; } .date-list { max-height: 150px; overflow-y: auto; background: #2c2c48; border-radius: 10px; padding: 8px; margin-bottom: 12px; } .date-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; color: #ccd1ff; font-weight: 600; } .date-item span { flex: 1; } .date-diff { margin-top: 12px; background: #292a40; border-radius: 10px; padding: 10px; max-height: 150px; overflow-y: auto; color: #ccd1ff; font-weight: 600; } .date-diff-item { padding: 4px 0; } .error-message { color: #f88; font-weight: 700; margin-bottom: 8px; text-align: center; user-select: none; } @media (max-width: 380px), (max-height: 600px) { #app { width: 100vw; height: 100vh; border-radius: 0; padding: 16px 10px; box-sizing: border-box; } input[type="date"] { font-size: 0.9rem; } button.add-btn { padding: 6px 10px; font-size: 0.9rem; } button.remove-btn { padding: 2px 6px; font-size: 0.8rem; margin-left: 6px; } } </style> </head> <body> <div id="app" role="application" aria-label="日付計算ツール"> <header>日付計算ツール</header> <div class="error-message" id="errorMessage" aria-live="assertive"></div> <div class="date-input"> <input type="date" id="dateInput" aria-label="日付入力" /> <button class="add-btn" id="addDateBtn" aria-label="日付を追加">追加</button> </div> <div class="date-list" id="dateList" aria-label="追加された日付一覧" tabindex="0" role="listbox"></div> <div class="date-diff" id="dateDiffList" aria-label="日付差分一覧"></div> </div>
+Run
+Copy code
 <script>
-  (function(){
-    const baseDateInput = document.getElementById('baseDate');
-    const offsetInput = document.getElementById('offsetNum');
-    const calcBtn = document.getElementById('calcBtn');
-    const resultDiv = document.getElementById('result');
+    (function(){
+        const dateInput = document.getElementById('dateInput');
+        const addDateBtn = document.getElementById('addDateBtn');
+        const dateList = document.getElementById('dateList');
+        const dateDiffList = document.getElementById('dateDiffList');
+        const errorMessage = document.getElementById('errorMessage');
 
-    // 初期値を今日の日付にセット
-    function formatDateYMD(date) {
-      const y = date.getFullYear();
-      const m = String(date.getMonth()+1).padStart(2,'0');
-      const d = String(date.getDate()).padStart(2,'0');
-      return `${y}-${m}-${d}`;
-    }
-    baseDateInput.value = formatDateYMD(new Date());
+        let dates = [];
 
-    function calcTargetDate(base, offset) {
-      const newDate = new Date(base);
-      newDate.setDate(newDate.getDate() + offset);
-      return newDate;
-    }
+        // 曜日名配列（日曜始まり）
+        const weekNames = ['日', '月', '火', '水', '木', '金', '土'];
 
-    function displayResult(date) {
-      const ye = date.getFullYear();
-      const mo = String(date.getMonth()+1).padStart(2,'0');
-      const da = String(date.getDate()).padStart(2,'0');
-      resultDiv.textContent = `${ye}年${mo}月${da}日 です`;
-    }
+        // 日付形式整形 YYYY-MM-DD → YYYY年MM月DD日(曜)
+        function formatDisplayDate(dateStr){
+            const d = new Date(dateStr + 'T00:00:00');
+            if(isNaN(d.getTime())) return '';
+            return `${d.getFullYear()}年${(d.getMonth()+1).toString().padStart(2,'0')}月${d.getDate().toString().padStart(2,'0')}日（${weekNames[d.getDay()]}）`;
+        }
 
-    calcBtn.addEventListener('click', () => {
-      const baseStr = baseDateInput.value;
-      let offset = Number(offsetInput.value);
-      if(!baseStr) {
-        resultDiv.textContent = '基準日を正しく入力してください';
-        return;
-      }
-      if (isNaN(offset)) {
-        resultDiv.textContent = '増減日数を正しく入力してください';
-        return;
-      }
-      const baseDate = new Date(baseStr + 'T00:00:00');
-      if (isNaN(baseDate.getTime())) {
-        resultDiv.textContent = '基準日を正しく入力してください';
-        return;
-      }
-      const target = calcTargetDate(baseDate, offset);
-      displayResult(target);
-    });
-  })();
+        // 日付差分（絶対値）計算
+        function diffDays(dateStr1, dateStr2){
+            const d1 = new Date(dateStr1 + 'T00:00:00');
+            const d2 = new Date(dateStr2 + 'T00:00:00');
+            if(isNaN(d1.getTime()) || isNaN(d2.getTime())) return null;
+            const diff = Math.abs(d2.getTime() - d1.getTime());
+            return Math.floor(diff / (1000*60*60*24));
+        }
+
+        // バリデーション: 年が10桁以上の場合エラー
+        function isValidDate(dateStr){
+            const d = new Date(dateStr + 'T00:00:00');
+            if(isNaN(d.getTime())) return false;
+            const yearStr = dateStr.split('-')[0];
+            if(yearStr.length > 9) return false; // 10桁以上は拒否
+            return true;
+        }
+
+        // 日付の追加処理
+        function addDate(){
+            const val = dateInput.value;
+            errorMessage.textContent = '';
+            if(!val){
+                errorMessage.textContent = '有効な日付を選択してください';
+                return;
+            }
+            if(!isValidDate(val)){
+                errorMessage.textContent = 'エラー: 入力された日付の年が桁数制限を超えています';
+                return;
+            }
+            if(dates.includes(val)){
+                errorMessage.textContent = 'すでに追加済みの日付です';
+                return;
+            }
+            dates.push(val);
+            dates.sort((a,b) => new Date(a) - new Date(b));
+            renderDates();
+            renderDiffs();
+        }
+
+        // 日付の削除処理
+        function removeDate(dateStr){
+            dates = dates.filter(d => d !== dateStr);
+            renderDates();
+            renderDiffs();
+        }
+
+        // 日付一覧の描画
+        function renderDates(){
+            dateList.innerHTML = '';
+            if(dates.length === 0){
+                const empty = document.createElement('div');
+                empty.textContent = '日付が追加されていません';
+                empty.style.textAlign = 'center';
+                empty.style.color = '#a1a6c9';
+                dateList.appendChild(empty);
+                return;
+            }
+            dates.forEach(d => {
+                const item = document.createElement('div');
+                item.className = 'date-item';
+                const textSpan = document.createElement('span');
+                textSpan.textContent = formatDisplayDate(d);
+                const delBtn = document.createElement('button');
+                delBtn.className = 'remove-btn';
+                delBtn.textContent = '削除';
+                delBtn.setAttribute('aria-label', `${formatDisplayDate(d)} を削除`);
+                delBtn.addEventListener('click', () => removeDate(d));
+                item.appendChild(textSpan);
+                item.appendChild(delBtn);
+                dateList.appendChild(item);
+            });
+        }
+
+        // 差分一覧の描画
+        function renderDiffs(){
+            dateDiffList.innerHTML = '';
+            if(dates.length < 2){
+                dateDiffList.textContent = '2つ以上の日付を追加すると日数差を計算します';
+                return;
+            }
+            for(let i=0; i<dates.length -1; i++){
+                const d1 = dates[i];
+                const d2 = dates[i+1];
+                const diff = diffDays(d1, d2);
+                const diffText = document.createElement('div');
+                diffText.className = 'date-diff-item';
+                diffText.textContent = `${formatDisplayDate(d1)} ～ ${formatDisplayDate(d2)} は ${diff} 日差です`;
+                dateDiffList.appendChild(diffText);
+            }
+        }
+
+        addDateBtn.addEventListener('click', addDate);
+        dateInput.addEventListener('keydown', e => {
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                addDate();
+            }
+        });
+
+        // 初期化：今日の年月日をセット
+        function init(){
+            const today = new Date();
+            const y = today.getFullYear();
+            const m = (today.getMonth() + 1).toString().padStart(2,'0');
+            const d = today.getDate().toString().padStart(2,'0');
+            dateInput.value = `${y}-${m}-${d}`;
+            renderDates();
+            renderDiffs();
+        }
+
+        init();
+    })();
 </script>
-</body>
-</html>
-
+</body> </html>

@@ -23,10 +23,12 @@
   #app {
     background: #1e1e2f;
     border-radius: 15px;
-    width: 340px;
+    width: 360px;
     max-width: 95vw;
     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
     padding: 20px;
+    display: flex;
+    flex-direction: column;
   }
   header {
     text-align: center;
@@ -82,6 +84,14 @@
     text-align: center;
     user-select: none;
     min-height: 2em;
+    white-space: pre-wrap;
+  }
+  #error {
+    margin-top: 10px;
+    color: #f88;
+    font-weight: 700;
+    text-align: center;
+    user-select: none;
   }
   @media (max-width: 380px), (max-height: 600px) {
     #app {
@@ -99,29 +109,31 @@
 </style>
 </head>
 <body>
-  <div id="app" role="application" aria-label="単位変換ツール">
-    <header>単位変換ツール</header>
-    <label for="categorySelect">変換カテゴリ</label>
-    <select id="categorySelect" aria-label="単位変換カテゴリ選択">
-      <option value="length">長さ</option>
-      <option value="weight">重さ</option>
-      <option value="temperature">温度</option>
-      <option value="time">時間</option>
-    </select>
+<div id="app" role="application" aria-label="単位変換ツール">
+  <header>単位変換ツール</header>
+  <label for="categorySelect">変換カテゴリ</label>
+  <select id="categorySelect" aria-label="単位変換カテゴリ選択">
+    <option value="length">長さ</option>
+    <option value="weight">重さ</option>
+    <option value="temperature">温度</option>
+    <option value="time">時間</option>
+    <option value="currency">通貨</option>
+  </select>
 
-    <label for="inputValue">入力値</label>
-    <input type="number" id="inputValue" aria-label="変換する値" placeholder="値を入力してください" />
+  <label for="inputValue">入力値</label>
+  <input type="number" id="inputValue" aria-label="変換する値" placeholder="値を入力してください" />
 
-    <label for="fromUnit">変換元単位</label>
-    <select id="fromUnit" aria-label="変換元単位選択"></select>
+  <label for="fromUnit">変換元単位</label>
+  <select id="fromUnit" aria-label="変換元単位選択"></select>
 
-    <label for="toUnit">変換先単位</label>
-    <select id="toUnit" aria-label="変換先単位選択"></select>
+  <label for="toUnit">変換先単位</label>
+  <select id="toUnit" aria-label="変換先単位選択"></select>
 
-    <button id="convertBtn" aria-label="単位変換実行">変換する</button>
+  <button id="convertBtn" aria-label="単位変換実行">変換する</button>
+  <div id="error" role="alert" aria-live="assertive"></div>
+  <div id="result" aria-live="polite" aria-atomic="true"></div>
+</div>
 
-    <div id="result" aria-live="polite" aria-atomic="true"></div>
-  </div>
 <script>
   (function(){
     const categorySelect = document.getElementById('categorySelect');
@@ -130,8 +142,9 @@
     const toUnit = document.getElementById('toUnit');
     const convertBtn = document.getElementById('convertBtn');
     const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
 
-    // 各カテゴリの単位リストと変換係数（基準単位はそれぞれ固定）
+    // 基本単位変換データ
     const unitsData = {
       length: {
         base: 'm',
@@ -171,11 +184,31 @@
       }
     };
 
+    // 通貨用通貨コード一覧（主要通貨）
+    const currencyCodes = ['USD', 'EUR', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'NZD', 'SEK', 'KRW'];
+
+    // 為替レートデータ
+    let exchangeRates = {};
+    let lastFetchTime = 0;
+
+    // 変換単位選択肢セット
     function populateUnits(category) {
       fromUnit.innerHTML = '';
       toUnit.innerHTML = '';
-
-      if(category === 'temperature') {
+      errorDiv.textContent = '';
+      resultDiv.textContent = '';
+      if(category === 'currency'){
+        currencyCodes.forEach(code => {
+          const opt1 = document.createElement('option');
+          opt1.value = code;
+          opt1.textContent = code;
+          fromUnit.appendChild(opt1);
+          const opt2 = document.createElement('option');
+          opt2.value = code;
+          opt2.textContent = code;
+          toUnit.appendChild(opt2);
+        });
+      } else if(category === 'temperature'){
         ['C', 'F', 'K'].forEach(u => {
           const opt1 = document.createElement('option');
           opt1.value = u;
@@ -204,32 +237,17 @@
     function convertTemperature(value, from, to) {
       if(isNaN(value)) return null;
       let celsius;
-
-      // fromを摂氏に変換
       switch(from) {
-        case 'C':
-          celsius = value;
-          break;
-        case 'F':
-          celsius = (value - 32) * 5/9;
-          break;
-        case 'K':
-          celsius = value - 273.15;
-          break;
-        default:
-          return null;
+        case 'C': celsius = value; break;
+        case 'F': celsius = (value - 32) * 5/9; break;
+        case 'K': celsius = value - 273.15; break;
+        default: return null;
       }
-
-      // 摂氏からto単位に変換
       switch(to) {
-        case 'C':
-          return celsius;
-        case 'F':
-          return (celsius * 9/5) + 32;
-        case 'K':
-          return celsius + 273.15;
-        default:
-          return null;
+        case 'C': return celsius;
+        case 'F': return (celsius * 9/5) + 32;
+        case 'K': return celsius + 273.15;
+        default: return null;
       }
     }
 
@@ -237,48 +255,92 @@
       if(isNaN(value)) return null;
       if(category === 'temperature') {
         return convertTemperature(value, from, to);
+      } else if(category === 'currency'){
+        if(!exchangeRates[from] || !exchangeRates[to]){
+          errorDiv.textContent = '為替レート情報がまだ取得されていません。少し待ってから再試行してください。';
+          return null;
+        }
+        const baseUSD = (from === 'USD') ? 1 : 1 / exchangeRates[from];
+        const toRate = (to === 'USD') ? 1 : exchangeRates[to];
+        return value * baseUSD * toRate;
       } else {
         const baseValue = value * unitsData[category].units[from];
         return baseValue / unitsData[category].units[to];
       }
     }
 
-    categorySelect.addEventListener('change', () => {
-      populateUnits(categorySelect.value);
-      resultDiv.textContent = '';
-    });
+    // 為替レートAPIからデータ取得
+    async function fetchExchangeRates(){
+      errorDiv.textContent = '';
+      resultDiv.textContent = '為替レートを取得しています…';
+      try {
+        // 無料API例：exchangerate-api.com(必要APIキーなどはご自身で準備ください)
+        // ここではデモ用にFixer.ioのAPI無料版の代替を想定し、オープンなAPI使います
+        // 実際にはAPIキー取得が必要で適宜書き換えください
+        const response = await fetch('https://open.er-api.com/v6/latest/USD');
+        if(!response.ok){
+          throw new Error('APIの応答が正常ではありません');
+        }
+        const data = await response.json();
+        if(data.result !== 'success'){
+          throw new Error('APIデータ取得に失敗しました');
+        }
+        exchangeRates = data.rates;
+        lastFetchTime = Date.now();
+        resultDiv.textContent = '';
+      } catch(e){
+        errorDiv.textContent = '為替レート取得エラー: ' + e.message;
+        resultDiv.textContent = '';
+      }
+    }
 
-    convertBtn.addEventListener('click', () => {
+    convertBtn.addEventListener('click', async () => {
+      errorDiv.textContent = '';
+      resultDiv.textContent = '';
       const category = categorySelect.value;
       const value = parseFloat(inputValue.value);
       const from = fromUnit.value;
       const to = toUnit.value;
 
-      if(isNaN(value)) {
-        resultDiv.textContent = '有効な数値を入力してください';
+      if(isNaN(value)){
+        errorDiv.textContent = '有効な数値を入力してください';
         return;
       }
-      if(!from || !to) {
-        resultDiv.textContent = '単位を選択してください';
+      if(!from || !to){
+        errorDiv.textContent = '単位を選択してください';
         return;
       }
-      if(from === to) {
-        resultDiv.textContent = '変換元と変換先は異なる単位を選択してください';
+      if(from === to){
+        errorDiv.textContent = '変換元と変換先は異なる単位を選択してください';
         return;
       }
 
+      if(category === 'currency'){
+        // 為替レートが古ければ3時間ごとに更新
+        if(!exchangeRates || Date.now() - lastFetchTime > 3*60*60*1000){
+          await fetchExchangeRates();
+          if(errorDiv.textContent) return; // エラーなら処理中断
+        }
+      }
+
       const converted = convertUnits(value, category, from, to);
-      if(converted === null || isNaN(converted)) {
-        resultDiv.textContent = '変換できませんでした';
+      if(converted === null || isNaN(converted)){
+        errorDiv.textContent = '変換できませんでした';
         return;
       }
       resultDiv.textContent = `${value} ${from} は約 ${converted.toFixed(4)} ${to} です`;
     });
 
-    // 初期設定
+    categorySelect.addEventListener('change', () => {
+      populateUnits(categorySelect.value);
+      errorDiv.textContent = '';
+      resultDiv.textContent = '';
+    });
+
+    // 初期表示
     populateUnits(categorySelect.value);
+    fetchExchangeRates();
   })();
 </script>
 </body>
 </html>
-
