@@ -1,4 +1,3 @@
-<![CDATA[
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -193,6 +192,7 @@
     let currentInput = '';
     let resetNext = false;
     let history = [];
+    let errorState = false;  // エラー状態フラグ
 
     function updateDisplay(value) {
       display.value = value;
@@ -201,48 +201,19 @@
     function clearAll() {
       currentInput = '';
       resetNext = false;
+      errorState = false;   // エラー解除
       updateDisplay('0');
     }
 
     function calculate(expression) {
       try {
-        // 安全な実行のためFunctionを利用
         const result = Function(`"use strict";return (${expression})`)();
+        errorState = false; // 成功でエラー解除
         return result;
       } catch {
+        errorState = true;  // エラー状態に
         return 'エラー';
       }
-    }
-
-    function renderHistory() {
-      historyContainer.innerHTML = '';
-      if(history.length === 0){
-        const noHist = document.createElement('div');
-        noHist.textContent = '履歴はありません';
-        noHist.style.color = '#a1a6c9';
-        noHist.style.textAlign = 'center';
-        historyContainer.appendChild(noHist);
-        return;
-      }
-      history.slice().reverse().forEach(item => {
-        const div = document.createElement('div');
-        div.classList.add('history-item');
-        div.textContent = `${item.expr} = ${item.result}`;
-        div.tabIndex = 0;
-        div.setAttribute('role', 'button');
-        div.addEventListener('click', () => {
-          resetNext = false;
-          currentInput = item.expr;
-          updateDisplay(currentInput);
-        });
-        div.addEventListener('keydown', e => {
-          if(e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            div.click();
-          }
-        });
-        historyContainer.appendChild(div);
-      });
     }
 
     buttons.forEach(btn => {
@@ -265,6 +236,10 @@
           return;
         }
         if (resetNext) {
+          if (errorState) {
+            currentInput = '';
+            errorState = false;
+          }
           if (val && /[0-9.]/.test(val)) {
             currentInput = val;
           } else {
@@ -275,6 +250,14 @@
           return;
         }
         if (!val) return;
+        if (errorState) {
+          if(/[0-9.]/.test(val)) {
+            currentInput = val;
+            errorState = false;
+            updateDisplay(currentInput);
+          }
+          return;
+        }
         const operators = ['+', '-', '*', '/'];
         const lastChar = currentInput.slice(-1);
         if (operators.includes(val)) {
@@ -303,6 +286,38 @@
       history = [];
       renderHistory();
     });
+
+    function renderHistory() {
+      historyContainer.innerHTML = '';
+      if(history.length === 0){
+        const noHist = document.createElement('div');
+        noHist.textContent = '履歴はありません';
+        noHist.style.color = '#a1a6c9';
+        noHist.style.textAlign = 'center';
+        historyContainer.appendChild(noHist);
+        return;
+      }
+      history.slice().reverse().forEach(item => {
+        const div = document.createElement('div');
+        div.classList.add('history-item');
+        div.textContent = `${item.expr} = ${item.result}`;
+        div.tabIndex = 0;
+        div.setAttribute('role', 'button');
+        div.addEventListener('click', () => {
+          resetNext = false;
+          currentInput = item.expr;
+          errorState = false; // 履歴から読み込み時はエラー解除
+          updateDisplay(currentInput);
+        });
+        div.addEventListener('keydown', e => {
+          if(e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            div.click();
+          }
+        });
+        historyContainer.appendChild(div);
+      });
+    }
 
     clearAll();
     renderHistory();
