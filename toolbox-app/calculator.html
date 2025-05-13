@@ -194,6 +194,19 @@
     let history = [];
     let errorState = false;  // エラー状態フラグ
 
+    // 数式評価関数（安全チェック付き）
+    function evaluateExpression(ex) {
+      try {
+        if (/[^0-9+\-*/().\s]/.test(ex)) return NaN;
+        if (/\/0(?!\d)/.test(ex)) return NaN;
+        const result = Function('"use strict"; return (' + ex + ')')();
+        if (typeof result !== 'number' || !isFinite(result)) return NaN;
+        return result;
+      } catch {
+        return NaN;
+      }
+    }
+
     function updateDisplay(value) {
       display.value = value;
     }
@@ -205,17 +218,6 @@
       updateDisplay('0');
     }
 
-    function calculate(expression) {
-      try {
-        const result = Function(`"use strict";return (${expression})`)();
-        errorState = false; // 成功でエラー解除
-        return result;
-      } catch {
-        errorState = true;  // エラー状態に
-        return 'エラー';
-      }
-    }
-
     buttons.forEach(btn => {
       btn.addEventListener('click', () => {
         const val = btn.getAttribute('data-value');
@@ -225,9 +227,13 @@
         }
         if (btn.id === 'equals') {
           if (currentInput.trim().length === 0) return;
-          const res = calculate(currentInput);
-          updateDisplay(res);
-          if(res !== 'エラー'){
+          const res = evaluateExpression(currentInput);
+          if (isNaN(res)) {
+            errorState = true;
+            updateDisplay('エラー');
+          } else {
+            errorState = false;
+            updateDisplay(res);
             history.push({expr: currentInput, result: res});
             renderHistory();
           }
