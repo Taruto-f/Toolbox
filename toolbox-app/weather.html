@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>気象庁リアルタイム天気ツール | ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+  }
+  #app {
+    background: #1e1e2f;
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    user-select: none;
+    text-align: center;
+  }
+  label {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+  }
+  select, button {
+    width: 100%;
+    font-size: 1rem;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 16px;
+    background: #3a3a67;
+    color: #eef1f7;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #7d91f6;
+  }
+  #result {
+    background: #2c2c48;
+    padding: 16px;
+    border-radius: 12px;
+    min-height: 140px;
+    user-select: none;
+  }
+  #error {
+    color: #f88;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-align: center;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+  <div id="app" role="application" aria-label="気象庁リアルタイム天気ツール">
+    <h1>気象庁リアルタイム天気ツール</h1>
+    <label for="prefSelect">都道府県を選択</label>
+    <select id="prefSelect" aria-label="都道府県選択">
+      <option value="010000">北海道</option>
+      <option value="020000">青森県</option>
+      <option value="030000">岩手県</option>
+      <option value="040000">宮城県</option>
+      <option value="050000">秋田県</option>
+      <option value="060000">山形県</option>
+      <option value="070000">福島県</option>
+      <option value="080000">茨城県</option>
+      <option value="090000">栃木県</option>
+      <option value="100000">群馬県</option>
+      <option value="110000">埼玉県</option>
+      <option value="120000">千葉県</option>
+      <option value="130000" selected>東京都</option>
+      <option value="140000">神奈川県</option>
+      <option value="150000">新潟県</option>
+      <option value="160000">富山県</option>
+      <option value="170000">石川県</option>
+      <option value="180000">福井県</option>
+      <option value="190000">山梨県</option>
+      <option value="200000">長野県</option>
+      <option value="210000">岐阜県</option>
+      <option value="220000">静岡県</option>
+      <option value="230000">愛知県</option>
+      <option value="240000">三重県</option>
+      <option value="250000">滋賀県</option>
+      <option value="260000">京都府</option>
+      <option value="270000">大阪府</option>
+      <option value="280000">兵庫県</option>
+      <option value="290000">奈良県</option>
+      <option value="300000">和歌山県</option>
+      <option value="310000">鳥取県</option>
+      <option value="320000">島根県</option>
+      <option value="330000">岡山県</option>
+      <option value="340000">広島県</option>
+      <option value="350000">山口県</option>
+      <option value="360000">徳島県</option>
+      <option value="370000">香川県</option>
+      <option value="380000">愛媛県</option>
+      <option value="390000">高知県</option>
+      <option value="400000">福岡県</option>
+      <option value="410000">佐賀県</option>
+      <option value="420000">長崎県</option>
+      <option value="430000">熊本県</option>
+      <option value="440000">大分県</option>
+      <option value="450000">宮崎県</option>
+      <option value="460000">鹿児島県</option>
+      <option value="470000">沖縄県</option>
+    </select>
+    <button id="getWeatherBtn">天気情報を取得</button>
+    <div id="error" aria-live="assertive"></div>
+    <div id="result" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+<script>
+  (() => {
+    const prefSelect = document.getElementById('prefSelect');
+    const getWeatherBtn = document.getElementById('getWeatherBtn');
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+
+    // 気象庁予報区エリアコードから名称を取得（省略可能。今回は予報区名を取得しない簡易版）
+
+    async function fetchWeather(areaCode) {
+      errorDiv.textContent = '';
+      resultDiv.textContent = '読み込み中…';
+      try {
+        const url = `https://www.jma.go.jp/bosai/forecast/data/forecast/${areaCode}.json`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('通信エラーが発生しました');
+        const data = await response.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error('データ形式が不正です');
+        }
+
+        // 気象庁API仕様により、data[0]に地域の予報情報あり
+        const forecast = data[0];
+        const reportDatetime = forecast.reportDatetime || '';
+        const areas = forecast.timeSeries?.[0]?.areas || [];
+
+        if (!areas.length) {
+          throw new Error('エリア情報がありません');
+        }
+
+        // 予報エリアの天気・短縮説明を取得（最初のエリア）
+        const areaForecast = areas[0]; 
+
+        // 天気概況取得（長文はdata[1]などに別で配置される）
+        const weathers = areaForecast.weathers || [];
+        const weatherToday = weathers[0] || '情報なし';
+
+        // 天気コードや降水確率などもdata[0].timeSeries[2], [3]にあること多いが簡略表示
+
+        const html = `
+          <h2>予報日時: ${reportDatetime}</h2>
+          <p>天気: ${weatherToday}</p>
+          <p>地域: ${areaForecast.area.name}</p>
+        `;
+
+        resultDiv.innerHTML = html;
+      } catch (e) {
+        resultDiv.textContent = '';
+        errorDiv.textContent = e.message || '天気情報の取得中にエラーが発生しました';
+      }
+    }
+
+    getWeatherBtn.addEventListener('click', () => {
+      const areaCode = prefSelect.value;
+      if (!areaCode) {
+        errorDiv.textContent = '都道府県を選択してください';
+        resultDiv.textContent = '';
+        return;
+      }
+      fetchWeather(areaCode);
+    });
+  })();
+</script>
+</body>
+</html>

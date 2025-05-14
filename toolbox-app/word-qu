@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>単語学習＆クイズツール | ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  #app {
+    background: #1e1e2f;
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    user-select: none;
+    text-align: center;
+  }
+  label, input, button {
+    width: 100%;
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  label {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+  }
+  input[type="text"] {
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    background: #3a3a67;
+    color: #eef1f7;
+    outline: none;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+  }
+  button {
+    background: #7d91f6;
+    border: none;
+    color: #1e1e2f;
+    font-weight: 700;
+    padding: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
+    transition: background 0.3s ease;
+  }
+  button:active {
+    background: #5a68bf;
+  }
+  #quizSection {
+    margin-top: 20px;
+    display: none;
+  }
+  #quizQuestion {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  #quizOptions button {
+    margin: 6px 0;
+    width: 100%;
+    padding: 8px;
+    font-weight: 600;
+  }
+  #nextQuestionBtn {
+    margin-top: 12px;
+  }
+  #quizResult {
+    margin-top: 12px;
+    font-weight: 700;
+    min-height: 1.5em;
+    user-select: all;
+    color: #ccd1ff;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div id="app" role="application" aria-label="単語学習＆クイズツール">
+    <h1>単語学習ツール</h1>
+    <label for="wordInput">単語を入力</label>
+    <input type="text" id="wordInput" placeholder="例: apple" aria-label="単語" />
+    
+    <label for="meaningInput">意味を入力</label>
+    <input type="text" id="meaningInput" placeholder="例: りんご" aria-label="意味" />
+    
+    <button id="addWordBtn">単語を追加</button>
+    
+    <div id="quizSection">
+      <h1>クイズ</h1>
+      <div id="quizQuestion"></div>
+      <div id="quizOptions"></div>
+      <button id="nextQuestionBtn" style="display:none;">次の問題</button>
+      <div id="quizResult"></div>
+    </div>
+  </div>
+
+<script>
+  (() => {
+    const wordInput = document.getElementById('wordInput');
+    const meaningInput = document.getElementById('meaningInput');
+    const addWordBtn = document.getElementById('addWordBtn');
+    const quizSection = document.getElementById('quizSection');
+    const quizQuestion = document.getElementById('quizQuestion');
+    const quizOptions = document.getElementById('quizOptions');
+    const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+    const quizResult = document.getElementById('quizResult');
+
+    // 単語データ形式：{word: "単語", meaning: "意味"}
+    let words = JSON.parse(localStorage.getItem('words')) || [];
+    let quizOrder = [];
+    let currentQuestionIndex = -1;
+    let correctAnswers = 0;
+    let totalAnswered = 0;
+
+    function saveWords() {
+      localStorage.setItem('words', JSON.stringify(words));
+    }
+
+    function addWord() {
+      const w = wordInput.value.trim();
+      const m = meaningInput.value.trim();
+      if (!w || !m) {
+        alert('単語と意味の両方を入力してください。');
+        return;
+      }
+      // 重複チェック（単語が同じかどうか）
+      if(words.some(item => item.word.toLowerCase() === w.toLowerCase())){
+        alert('この単語はすでに追加されています。');
+        return;
+      }
+      words.push({word: w, meaning: m});
+      saveWords();
+      wordInput.value = '';
+      meaningInput.value = '';
+      alert('単語を追加しました。');
+      if(words.length >= 4){
+        startQuiz();
+      }
+    }
+
+    function startQuiz() {
+      if(words.length < 4){
+        quizSection.style.display = 'none';
+        quizResult.textContent = '単語を4つ以上追加するとクイズが始まります。';
+        return;
+      }
+      quizSection.style.display = 'block';
+      quizResult.textContent = '';
+      correctAnswers = 0;
+      totalAnswered = 0;
+      quizOrder = shuffleArray([...words.keys()]);
+      currentQuestionIndex = -1;
+      nextQuestionBtn.style.display = 'none';
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if(currentQuestionIndex >= quizOrder.length){
+        quizQuestion.textContent = 'クイズ終了！ 正解数: ' + correctAnswers + ' / ' + totalAnswered;
+        quizOptions.innerHTML = '';
+        nextQuestionBtn.style.display = 'none';
+        return;
+      }
+      quizResult.textContent = '';
+      nextQuestionBtn.style.display = 'none';
+      const currentWordIndex = quizOrder[currentQuestionIndex];
+      showQuestion(currentWordIndex);
+    }
+
+    function showQuestion(correctIndex) {
+      const correctItem = words[correctIndex];
+      quizQuestion.textContent = `意味: ${correctItem.meaning} に該当する単語は？`;
+      quizOptions.innerHTML = '';
+
+      // 選択肢作成（正解1つ＋ランダム3つ）
+      const options = [correctItem];
+      while(options.length < 4){
+        const randIndex = Math.floor(Math.random() * words.length);
+        if(!options.some(o => o.word === words[randIndex].word)){
+          options.push(words[randIndex]);
+        }
+      }
+      // シャッフル
+      shuffleArray(options);
+      options.forEach((opt) => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.word;
+        btn.type = 'button';
+        btn.addEventListener('click', () => {
+          totalAnswered++;
+          if(opt.word === correctItem.word){
+            correctAnswers++;
+            quizResult.textContent = '正解！🎉';
+          } else {
+            quizResult.textContent = `不正解… 正解は「${correctItem.word}」です。`;
+          }
+          // 選択肢ボタン無効化
+          Array.from(quizOptions.children).forEach(b => b.disabled = true);
+          nextQuestionBtn.style.display = 'block';
+          nextQuestionBtn.focus();
+        });
+        quizOptions.appendChild(btn);
+      });
+    }
+
+    // 配列シャッフル（Fisher-Yates）
+    function shuffleArray(array) {
+      for(let i = array.length -1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i+1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    addWordBtn.addEventListener('click', addWord);
+    nextQuestionBtn.addEventListener('click', nextQuestion);
+
+    // 初期起動でクイズ表示判定
+    if(words.length >= 4){
+      startQuiz();
+    } else {
+      quizResult.textContent = '単語を4つ以上追加するとクイズが始まります。';
+    }
+  })();
+</script>
+</body>
+</html>

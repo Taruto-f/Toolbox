@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>QRコードジェネレーター＆スキャナー | ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  #app {
+    background: #1e1e2f;
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    user-select: none;
+    text-align: center;
+  }
+  label, input, button {
+    width: 100%;
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  label {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+  }
+  input[type="text"] {
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    background: #3a3a67;
+    color: #eef1f7;
+    outline: none;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+  }
+  button {
+    background: #7d91f6;
+    border: none;
+    color: #1e1e2f;
+    font-weight: 700;
+    padding: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
+    transition: background 0.3s ease;
+  }
+  button:active {
+    background: #5a68bf;
+  }
+  #qrcode {
+    margin-top: 16px;
+    background: #2c2c48;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+  }
+  #scanSection {
+    margin-top: 24px;
+    width: 100%;
+    text-align: center;
+  }
+  video#preview {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+  }
+  #scanResult {
+    margin-top: 12px;
+    font-weight: 700;
+    min-height: 1.5em;
+    user-select: all;
+    color: #ccd1ff;
+  }
+</style>
+</head>
+<body>
+  <div id="app" role="application" aria-label="QRコードジェネレーター＆スキャナー">
+    <h1>QRコードジェネレーター</h1>
+    <label for="textInput">テキストまたはURLを入力</label>
+    <input type="text" id="textInput" placeholder="例: https://example.com" aria-label="QRコードに変換するテキスト" />
+    <button id="generateBtn" aria-label="QRコード生成">生成</button>
+    <div id="qrcode" aria-live="polite" aria-atomic="true" role="img" aria-label="生成されたQRコード"></div>
+
+    <div id="scanSection" aria-label="QRコードスキャナー">
+      <h1>QRコードスキャナー</h1>
+      <button id="startScanBtn" aria-label="スキャン開始">スキャン開始</button>
+      <button id="stopScanBtn" aria-label="スキャン停止" style="display:none; margin-top:8px;">スキャン停止</button>
+      <video id="preview" autoplay muted playsinline style="display:none;"></video>
+      <div id="scanResult" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
+  <script>
+    (function(){
+      const textInput = document.getElementById('textInput');
+      const generateBtn = document.getElementById('generateBtn');
+      const qrcodeContainer = document.getElementById('qrcode');
+      const startScanBtn = document.getElementById('startScanBtn');
+      const stopScanBtn = document.getElementById('stopScanBtn');
+      const previewVideo = document.getElementById('preview');
+      const scanResult = document.getElementById('scanResult');
+
+      // QRコード生成ライブラリとして簡単なものを利用（https://davidshimjs.github.io/qrcodejs/）
+      function generateQRCode(text) {
+        qrcodeContainer.innerHTML = "";
+        if(!text) return;
+        new QRCode(qrcodeContainer, {
+          text,
+          width: 200,
+          height: 200,
+          colorDark : "#000000",
+          colorLight : "#ffffff",
+          correctLevel : QRCode.CorrectLevel.H
+        });
+      }
+
+      generateBtn.addEventListener('click', () => {
+        const text = textInput.value.trim();
+        if(text === "") {
+          qrcodeContainer.innerHTML = "";
+          return;
+        }
+        generateQRCode(text);
+      });
+
+      // ZXingによるQRコードスキャン機能
+      const codeReader = new ZXing.BrowserQRCodeReader();
+      let streamStarted = false;
+
+      startScanBtn.addEventListener('click', async () => {
+        try {
+          scanResult.textContent = "";
+          startScanBtn.style.display = "none";
+          stopScanBtn.style.display = "inline-block";
+          previewVideo.style.display = "block";
+
+          await codeReader.decodeFromVideoDevice(null, previewVideo, (result, err) => {
+            if (result) {
+              scanResult.textContent = `読み取り結果: ${result.text}`;
+              // 必要なら音を鳴らすなど
+              // 読み取り後、自動停止してもよい
+              // codeReader.reset();
+              // startScanBtn.style.display = "inline-block";
+              // stopScanBtn.style.display = "none";
+              // previewVideo.style.display = "none";
+            }
+            if (err && !(err instanceof ZXing.NotFoundException)) {
+              scanResult.textContent = `エラー: ${err}`;
+            }
+          });
+          streamStarted = true;
+        } catch(error) {
+          scanResult.textContent = `カメラの起動に失敗しました: ${error}`;
+          startScanBtn.style.display = "inline-block";
+          stopScanBtn.style.display = "none";
+          previewVideo.style.display = "none";
+        }
+      });
+
+      stopScanBtn.addEventListener('click', () => {
+        codeReader.reset();
+        streamStarted = false;
+        scanResult.textContent = "";
+        startScanBtn.style.display = "inline-block";
+        stopScanBtn.style.display = "none";
+        previewVideo.style.display = "none";
+      });
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+</body>
+</html>

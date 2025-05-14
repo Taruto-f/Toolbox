@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
@@ -138,7 +135,7 @@
 </style>
 </head>
 <body data-theme="light">
-<button id="themeToggleBtn" aria-label="ダークモード切り替え" title="テーマ切り替え">🌙</button>
+<button id="themeToggleBtn" aria-label="テーマ切り替え" title="テーマ切り替え">🌙</button>
 <header>ツールボックス</header>
 <main>
   <button class="tool-btn" data-tool="calendar-memo.html" aria-label="カレンダー＆メモ帳を開く">カレンダー＆メモ帳</button>
@@ -150,10 +147,13 @@
   <button class="tool-btn" data-tool="color-picker.html" aria-label="カラーピッカー＆コード変換ツールを開く">カラーピッカー＆コード変換ツール</button>
   <button class="tool-btn" data-tool="timer-stopwatch.html" aria-label="タイマー＆ストップウォッチを開く">タイマー＆ストップウォッチ</button>
   <button class="tool-btn" data-tool="text-formatter.html" aria-label="テキストフォーマッター＆カウンターを開く">テキストフォーマッター＆カウンター</button>
+  <button class="tool-btn" data-tool="image-resize-compress.html" aria-label="画像リサイズ＆圧縮ツールを開く">画像リサイズ＆圧縮ツール</button>
+  <button class="tool-btn" data-tool="qr-code.html" aria-label="QRコードジェネレーター＆スキャナーを開く">QRコードジェネレーター＆スキャナー</button>
+  <button class="tool-btn" data-tool="word-quiz.html" aria-label="単語学習＆クイズツールを開く">単語学習＆クイズツール</button>
+  <button class="tool-btn" data-tool="weather.html" aria-label="リアルタイム天気ツールを開く">リアルタイム天気ツール</button>
 </main>
 <footer>&copy; 2025 ツールボックス</footer>
 <script>
-  // ツールボタン挙動
   document.querySelectorAll('button.tool-btn').forEach(button => {
     button.addEventListener('click', () => {
       const toolUrl = button.getAttribute('data-tool');
@@ -201,4 +201,3 @@
 </script>
 </body>
 </html>
-
