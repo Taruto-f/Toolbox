@@ -66,6 +66,19 @@
     box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
     box-sizing: border-box;
   }
+  a#bookmarkletOutput {
+    display: block;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #3a3a67;
+    color: #eef1f7;
+    text-decoration: none;
+    font-family: monospace;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+    user-select: all;
+    margin-bottom: 8px;
+    overflow-wrap: anywhere;
+  }
   button {
     background: #7d91f6;
     border: none;
@@ -110,8 +123,7 @@
 
     <button id="generateBtn">生成</button>
 
-    <label for="bookmarkletOutput">生成されたブックマークレット</label>
-    <input type="url" id="bookmarkletOutput" readonly aria-label="生成されたブックマークレットのURL" />
+    <a href="#" id="bookmarkletOutput" target="_blank" rel="noopener noreferrer" aria-label="生成されたブックマークレットへのリンク"></a>
 
     <button id="copyBtn" aria-label="ブックマークレットURLをコピー">コピー</button>
     <div id="copyStatus" aria-live="polite"></div>
@@ -146,21 +158,25 @@
     generateBtn.addEventListener('click', () => {
       const code = jsInput.value;
       if(!code.trim()){
-        bookmarkletOutput.value = '';
+        bookmarkletOutput.href = '#';
+        bookmarkletOutput.textContent = '';
+        bookmarkletOutput.removeAttribute('aria-label');
         copyStatus.textContent = 'コードを入力してください';
         return;
       }
       const bm = encodeBookmarklet(code);
-      bookmarkletOutput.value = bm;
+      bookmarkletOutput.href = bm;
+      bookmarkletOutput.textContent = bm;
+      bookmarkletOutput.setAttribute('aria-label', '生成されたブックマークレットリンク');
       copyStatus.textContent = '';
     });
 
     copyBtn.addEventListener('click', () => {
-      if(!bookmarkletOutput.value){
+      if(!bookmarkletOutput.href || bookmarkletOutput.href === window.location.href + '#'){
         copyStatus.textContent = '生成されたURLがありません';
         return;
       }
-      navigator.clipboard.writeText(bookmarkletOutput.value).then(() => {
+      navigator.clipboard.writeText(bookmarkletOutput.href).then(() => {
         copyStatus.textContent = 'コピーしました！';
       }).catch(() => {
         copyStatus.textContent = 'コピーに失敗しました。手動で選択してください。';
