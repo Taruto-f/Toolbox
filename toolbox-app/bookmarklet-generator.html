@@ -53,15 +53,18 @@
     box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
     resize: vertical;
     font-family: monospace;
+    box-sizing: border-box;
   }
-  input {
-    padding: 8px;
+  input[type="url"] {
+    padding: 8px 10px;
     border-radius: 10px;
     border: none;
     background: #3a3a67;
     color: #eef1f7;
     outline: none;
+    font-family: monospace;
     box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+    box-sizing: border-box;
   }
   button {
     background: #7d91f6;
@@ -77,15 +80,6 @@
   }
   button:active {
     background: #5a68bf;
-  }
-  #bookmarkletOutput {
-    background: #2c2c48;
-    border-radius: 12px;
-    padding: 10px;
-    font-family: monospace;
-    user-select: all;
-    min-height: 3em;
-    word-break: break-all;
   }
   #copyStatus {
     margin-top: 6px;
@@ -111,22 +105,23 @@
   <div id="app" role="application" aria-label="ブックマークレット生成ツール">
     <h1>ブックマークレット生成ツール</h1>
     <label for="jsInput">JavaScriptコードを入力してください</label>
-    <textarea id="jsInput" placeholder="alert('Hello, world!');"></textarea>
-    
+    <textarea id="jsInput" placeholder="alert('Hello, world!');" aria-label="QRコードに変換するテキスト"></textarea>
+
     <button id="generateBtn">生成</button>
-    
+
     <label for="bookmarkletOutput">生成されたブックマークレット</label>
-    <input type="text" id="bookmarkletOutput" readonly aria-label="生成されたブックマークレットのURL" />
-    <button id="copyBtn">コピー</button>
+    <input type="url" id="bookmarkletOutput" readonly aria-label="生成されたブックマークレットのURL" />
+
+    <button id="copyBtn" aria-label="ブックマークレットURLをコピー">コピー</button>
     <div id="copyStatus" aria-live="polite"></div>
-    
+
     <div id="instructions">
       <p>【使い方】</p>
       <ul>
         <li>JavaScriptコードを入力して「生成」を押すと、ブックマークレットURLが表示されます。</li>
         <li>「コピー」ボタンでURLをクリップボードにコピーできます。</li>
         <li>コピーしたURLをブックマークに登録すると、ワンクリックでコードが実行できます。</li>
-        <li>コードは`javascript:`で始まるURL形式なので、必ずこの形式で登録してください。</li>
+        <li>コードは必ず<code>javascript:</code>で始まるURL形式で登録してください。</li>
       </ul>
     </div>
   </div>
@@ -138,14 +133,9 @@
     const copyBtn = document.getElementById('copyBtn');
     const copyStatus = document.getElementById('copyStatus');
 
-    // ブックマークレット用エンコード関数
     function encodeBookmarklet(code) {
-      // 先頭のjavascript:は付ける
-      // 1. 空白や改行は削除して軽量化
-      // 2. URLエンコード (encodeURIComponent) ではなく、必要に応じてエスケープ
       const trimmed = code.trim().replace(/\s+/g, ' ').replace(/; /g,';');
       const wrapped = `(function(){${trimmed}})();`;
-      // URIエンコードはしすぎると可読性落ちるため最低限にとどめる
       const encoded = encodeURIComponent(wrapped)
         .replace(/'/g,"%27")
         .replace(/"/g,"%22");
