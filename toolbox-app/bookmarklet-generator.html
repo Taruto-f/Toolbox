@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ブックマークレット生成ツール | ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #app {
+    background: #1e1e2f;
+    border-radius: 15px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    padding: 20px;
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    text-align: center;
+    user-select: none;
+  }
+  label, textarea, input, button {
+    width: 100%;
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  label {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+  }
+  textarea {
+    min-height: 120px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #3a3a67;
+    color: #eef1f7;
+    outline: none;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+    resize: vertical;
+    font-family: monospace;
+  }
+  input {
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    background: #3a3a67;
+    color: #eef1f7;
+    outline: none;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+  }
+  button {
+    background: #7d91f6;
+    border: none;
+    color: #1e1e2f;
+    font-weight: 700;
+    padding: 12px 0;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
+    transition: background 0.3s ease;
+  }
+  button:active {
+    background: #5a68bf;
+  }
+  #bookmarkletOutput {
+    background: #2c2c48;
+    border-radius: 12px;
+    padding: 10px;
+    font-family: monospace;
+    user-select: all;
+    min-height: 3em;
+    word-break: break-all;
+  }
+  #copyStatus {
+    margin-top: 6px;
+    text-align: center;
+    font-weight: 700;
+    color: #a1c56c;
+    user-select: none;
+  }
+  #instructions {
+    margin-top: 16px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #ccd1ff;
+  }
+  @media (max-width: 460px) {
+    #app {
+      padding: 16px 12px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="app" role="application" aria-label="ブックマークレット生成ツール">
+    <h1>ブックマークレット生成ツール</h1>
+    <label for="jsInput">JavaScriptコードを入力してください</label>
+    <textarea id="jsInput" placeholder="alert('Hello, world!');"></textarea>
+    
+    <button id="generateBtn">生成</button>
+    
+    <label for="bookmarkletOutput">生成されたブックマークレット</label>
+    <input type="text" id="bookmarkletOutput" readonly aria-label="生成されたブックマークレットのURL" />
+    <button id="copyBtn">コピー</button>
+    <div id="copyStatus" aria-live="polite"></div>
+    
+    <div id="instructions">
+      <p>【使い方】</p>
+      <ul>
+        <li>JavaScriptコードを入力して「生成」を押すと、ブックマークレットURLが表示されます。</li>
+        <li>「コピー」ボタンでURLをクリップボードにコピーできます。</li>
+        <li>コピーしたURLをブックマークに登録すると、ワンクリックでコードが実行できます。</li>
+        <li>コードは`javascript:`で始まるURL形式なので、必ずこの形式で登録してください。</li>
+      </ul>
+    </div>
+  </div>
+<script>
+  (() => {
+    const jsInput = document.getElementById('jsInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const bookmarkletOutput = document.getElementById('bookmarkletOutput');
+    const copyBtn = document.getElementById('copyBtn');
+    const copyStatus = document.getElementById('copyStatus');
+
+    // ブックマークレット用エンコード関数
+    function encodeBookmarklet(code) {
+      // 先頭のjavascript:は付ける
+      // 1. 空白や改行は削除して軽量化
+      // 2. URLエンコード (encodeURIComponent) ではなく、必要に応じてエスケープ
+      const trimmed = code.trim().replace(/\s+/g, ' ').replace(/; /g,';');
+      const wrapped = `(function(){${trimmed}})();`;
+      // URIエンコードはしすぎると可読性落ちるため最低限にとどめる
+      const encoded = encodeURIComponent(wrapped)
+        .replace(/'/g,"%27")
+        .replace(/"/g,"%22");
+      return 'javascript:' + encoded;
+    }
+
+    generateBtn.addEventListener('click', () => {
+      const code = jsInput.value;
+      if(!code.trim()){
+        bookmarkletOutput.value = '';
+        copyStatus.textContent = 'コードを入力してください';
+        return;
+      }
+      const bm = encodeBookmarklet(code);
+      bookmarkletOutput.value = bm;
+      copyStatus.textContent = '';
+    });
+
+    copyBtn.addEventListener('click', () => {
+      if(!bookmarkletOutput.value){
+        copyStatus.textContent = '生成されたURLがありません';
+        return;
+      }
+      navigator.clipboard.writeText(bookmarkletOutput.value).then(() => {
+        copyStatus.textContent = 'コピーしました！';
+      }).catch(() => {
+        copyStatus.textContent = 'コピーに失敗しました。手動で選択してください。';
+      });
+    });
+  })();
+</script>
+</body>
+</html>
