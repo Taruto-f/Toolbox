@@ -6,25 +6,75 @@
 <title>電卓 | ツールボックス</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  :root {
+    --bg-light: #1e1e2f;
+    --bg-light-darker: #292a40;
+    --primary-light: #5567ab;
+    --primary-light-hover: #7183d1;
+    --text-light: #eef1f7;
+
+    --bg-dark: #121221;
+    --bg-dark-darker: #1b1b2f;
+    --primary-dark: #7680d6;
+    --primary-dark-hover: #8c95e5;
+    --text-dark: #cfd1e6;
+  }
+  body[data-theme='light'] {
+    --bg: var(--bg-light);
+    --bg-darker: var(--bg-light-darker);
+    --primary: var(--primary-light);
+    --primary-hover: var(--primary-light-hover);
+    --text: var(--text-light);
+  }
+  body[data-theme='dark'] {
+    --bg: var(--bg-dark);
+    --bg-darker: var(--bg-dark-darker);
+    --primary: var(--primary-dark);
+    --primary-hover: var(--primary-dark-hover);
+    --text: var(--text-dark);
+  }
   * {
     box-sizing: border-box;
   }
   body {
     margin: 0;
     font-family: 'Roboto Slab', serif;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #eef1f7;
+    background: var(--bg);
+    color: var(--text);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
   }
+  #themeToggleBtn {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    background: var(--primary);
+    border: none;
+    border-radius: 12px;
+    color: var(--text);
+    font-weight: 700;
+    padding: 8px 14px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 7px rgba(0,0,0,0.7);
+    transition: background-color 0.3s ease;
+    z-index: 1000;
+  }
+  #themeToggleBtn:hover {
+    background-color: var(--primary-hover);
+  }
+  #themeToggleBtn:active {
+    background-color: var(--primary);
+  }
   #calculator {
-    background: #1e1e2f;
+    background: var(--bg);
     border-radius: 16px;
     width: 340px;
     max-width: 95vw;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.5);
     display: flex;
     flex-direction: column;
     padding: 20px;
@@ -41,11 +91,12 @@
     padding: 12px 16px;
     border-radius: 12px;
     border: none;
-    background: #3a3a5a;
-    color: #eef1f7;
+    background: var(--bg-darker);
+    color: var(--text);
     text-align: right;
     margin-bottom: 16px;
-    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.6), inset -2px -2px 5px rgba(255,255,255,0.1);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   .buttons {
     display: grid;
@@ -53,24 +104,24 @@
     gap: 12px;
   }
   button.calc-btn {
-    background: #5567ab;
+    background: var(--primary);
     border: none;
     border-radius: 12px;
     padding: 20px 0;
     font-size: 1.3rem;
     font-weight: 700;
-    color: #eef1f7;
+    color: var(--text);
     cursor: pointer;
     user-select: none;
-    box-shadow: 0 3px 6px rgba(85,103,171,0.7);
-    transition: background 0.3s ease, transform 0.15s ease;
+    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
+    transition: background-color 0.3s ease, transform 0.15s ease;
   }
   button.calc-btn:hover {
-    background: #7183d1;
+    background-color: var(--primary-hover);
     transform: translateY(-3px);
   }
   button.calc-btn:active {
-    background: #3a4e93;
+    background-color: var(--primary);
     transform: translateY(0);
   }
   button.calc-btn.operator {
@@ -96,23 +147,24 @@
   }
   #historyContainer {
     margin-top: 16px;
-    background: #2c2c48;
+    background: var(--bg-darker);
     border-radius: 12px;
     padding: 10px;
     max-height: 150px;
     overflow-y: auto;
     font-size: 0.9rem;
-    color: #ccd1ff;
+    color: var(--text);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   .history-item {
     padding: 4px 8px;
     border-radius: 8px;
     cursor: pointer;
     user-select: none;
-    transition: background 0.2s ease;
+    transition: background-color 0.2s ease;
   }
   .history-item:hover {
-    background: #5567ab;
+    background-color: var(--primary-hover);
   }
   #clearHistoryBtn {
     margin-top: 10px;
@@ -126,13 +178,13 @@
     cursor: pointer;
     user-select: none;
     box-shadow: 0 3px 6px rgba(220, 53, 69, 0.7);
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease;
   }
   #clearHistoryBtn:hover {
-    background: #c82333;
+    background-color: #c82333;
   }
   #clearHistoryBtn:active {
-    background: #961b23;
+    background-color: #961b23;
   }
   @media (max-width: 380px), (max-height: 600px) {
     #calculator {
@@ -153,7 +205,8 @@
   }
 </style>
 </head>
-<body>
+<body data-theme="light">
+  <button id="themeToggleBtn" aria-label="テーマ切り替え" title="テーマ切り替え">🌙</button>
   <div id="calculator" role="application" aria-label="簡単な電卓">
     <header>電卓</header>
     <input type="text" id="display" aria-label="計算表示" readonly value="0" />
@@ -162,22 +215,18 @@
       <button class="calc-btn" data-value="8" aria-label="8">8</button>
       <button class="calc-btn" data-value="9" aria-label="9">9</button>
       <button class="calc-btn operator" data-value="/" aria-label="割り算">÷</button>
-
       <button class="calc-btn" data-value="4" aria-label="4">4</button>
       <button class="calc-btn" data-value="5" aria-label="5">5</button>
       <button class="calc-btn" data-value="6" aria-label="6">6</button>
       <button class="calc-btn operator" data-value="*" aria-label="かけ算">×</button>
-
       <button class="calc-btn" data-value="1" aria-label="1">1</button>
       <button class="calc-btn" data-value="2" aria-label="2">2</button>
       <button class="calc-btn" data-value="3" aria-label="3">3</button>
       <button class="calc-btn operator" data-value="-" aria-label="引き算">−</button>
-
       <button class="calc-btn" data-value="0" aria-label="0">0</button>
       <button class="calc-btn" data-value="." aria-label="小数点">.</button>
       <button class="calc-btn" id="clear" aria-label="クリア">C</button>
       <button class="calc-btn operator" data-value="+" aria-label="足し算">＋</button>
-
       <button class="calc-btn equals" id="equals" aria-label="イコール">＝</button>
     </div>
     <div id="historyContainer" aria-label="計算履歴" tabindex="0"></div>
@@ -189,16 +238,52 @@
     const buttons = document.querySelectorAll('button.calc-btn');
     const historyContainer = document.getElementById('historyContainer');
     const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const bodyEl = document.body;
+
     let currentInput = '';
     let resetNext = false;
     let history = [];
     let errorState = false;  // エラー状態フラグ
 
-    // 数式評価関数（安全チェック付き）
+    // テーマ管理
+    function loadTheme() {
+      const stored = localStorage.getItem('calc_theme');
+      if(stored === 'dark' || stored === 'light') {
+        return stored;
+      }
+      if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+        return 'dark';
+      }
+      return 'light';
+    }
+
+    function applyTheme(theme) {
+      bodyEl.setAttribute('data-theme', theme);
+      if(theme === 'dark'){
+        themeToggleBtn.textContent = '☀️';
+        themeToggleBtn.setAttribute('aria-label', 'ライトモードに切り替え');
+        themeToggleBtn.setAttribute('title', 'ライトモードに切り替え');
+      } else {
+        themeToggleBtn.textContent = '🌙';
+        themeToggleBtn.setAttribute('aria-label', 'ダークモードに切り替え');
+        themeToggleBtn.setAttribute('title', 'ダークモードに切り替え');
+      }
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      const current = bodyEl.getAttribute('data-theme');
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      applyTheme(newTheme);
+      localStorage.setItem('calc_theme', newTheme);
+    });
+
+    // 数式評価関数（安全）
     function evaluateExpression(ex) {
       try {
         if (/[^0-9+\-*/().\s]/.test(ex)) return NaN;
         if (/\/0(?!\d)/.test(ex)) return NaN;
+        // eslint-disable-next-line no-new-func
         const result = Function('"use strict"; return (' + ex + ')')();
         if (typeof result !== 'number' || !isFinite(result)) return NaN;
         return result;
@@ -214,7 +299,7 @@
     function clearAll() {
       currentInput = '';
       resetNext = false;
-      errorState = false;   // エラー解除
+      errorState = false;
       updateDisplay('0');
     }
 
@@ -312,7 +397,7 @@
         div.addEventListener('click', () => {
           resetNext = false;
           currentInput = item.expr;
-          errorState = false; // 履歴から読み込み時はエラー解除
+          errorState = false; // 履歴から読み込み
           updateDisplay(currentInput);
         });
         div.addEventListener('keydown', e => {
@@ -325,6 +410,7 @@
       });
     }
 
+    applyTheme(loadTheme());
     clearAll();
     renderHistory();
   })();
