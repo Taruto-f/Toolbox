@@ -1,14 +1,9 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
-  <meta name="format-detection" content="email=no,telephone=no,address=no">
-  <title>ツールボックス</title>
-  <link rel= herf="./toolbox-app/icons/toolbox.ico" />
-  <link rel="icon" herf="https://taruto-f.github.io/Toolbox/toolbox-app/icons/toolbox.ico">
-</head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>ツールボックス</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
   :root {
@@ -18,16 +13,20 @@
     --color-dark: #cfd1e6;
     --btn-bg-light: #4762c4;
     --btn-bg-dark: #5969ab;
+    --btn-border-color-light: #5f74d9;
+    --btn-border-color-dark: #707fb2;
   }
   [data-theme="light"] {
     --bg-gradient: var(--bg-gradient-light);
     --color: var(--color-light);
     --btn-bg: var(--btn-bg-light);
+    --btn-border-color: var(--btn-border-color-light);
   }
   [data-theme="dark"] {
     --bg-gradient: var(--bg-gradient-dark);
     --color: var(--color-dark);
     --btn-bg: var(--btn-bg-dark);
+    --btn-border-color: var(--btn-border-color-dark);
   }
 
   * {
@@ -38,123 +37,122 @@
     font-family: 'Roboto Slab', serif;
     background: var(--bg-gradient);
     color: var(--color);
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
   }
 
-  header {
-    font-size: 2.3rem;
-    font-weight: 700;
-    margin-bottom: 1.8rem;
-    user-select: none;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
-    position: relative;
+  #title {
     width: 100%;
     max-width: 600px;
+    padding: 20px 0;
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--color);
     text-align: center;
+    user-select: none;
   }
 
-  #themeToggleBtn {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    background: var(--btn-bg);
-    border: none;
-    border-radius: 12px;
-    color: var(--color);
-    font-weight: 700;
-    padding: 10px 16px;
-    font-size: 1.3rem;
-    cursor: pointer;
-    user-select: none;
-    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
-    transition: background 0.3s ease;
-    z-index: 1000;
-    line-height: 1;
-  }
-  #themeToggleBtn:hover {
-    background: #7d91f6;
-  }
-  #themeToggleBtn:active {
-    background: #5a68bf;
+  #container {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
   }
 
   main {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 16px;
-    width: 90vw;
-    max-width: 600px;
-  }
-  button.tool-btn {
+    flex-direction: column;
     background: var(--btn-bg);
+    border-radius: 20px;
+    padding: 20px 0;
+  }
+
+  button.tool-btn {
+    background: transparent;
     border: none;
-    border-radius: 15px;
+    border-top: 1px solid var(--btn-border-color);
     color: var(--color);
     font-weight: 700;
-    font-size: 1rem;
-    padding: 14px 28px;
+    font-size: 1.1rem;
+    padding: 15px 24px;
     cursor: pointer;
     user-select: none;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    transition: background 0.3s ease, transform 0.15s ease;
-    flex: 1 1 105px;
-    max-width: 150px;
+    width: 100%;
     text-align: center;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  /* 最初のボタンの上部にボーダーなし */
+  main button.tool-btn:first-child {
+    border-top: none;
   }
   button.tool-btn:hover {
-    background: #5a7ee8;
-    transform: translateY(-2.5px);
+    background-color: rgba(255, 255, 255, 0.15);
   }
   button.tool-btn:active {
-    background: #3a4da4;
-    transform: translateY(0);
+    background-color: rgba(255, 255, 255, 0.3);
   }
+
+  /* 背景つなげるセクションのために間隔調整 */
+  #btn-separator {
+    height: 12px;
+    background: var(--btn-bg);
+  }
+
   footer {
     margin-top: auto;
     padding: 12px;
     font-size: 0.9rem;
     color: var(--color);
     user-select: none;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
   }
+
   @media (max-width: 400px) {
-    button.tool-btn {
-      padding: 12px 24px;
-      font-size: 0.9rem;
-      max-width: 130px;
+    #container {
+      padding: 0 12px;
     }
-    #themeToggleBtn {
-      padding: 8px 12px;
-      font-size: 1.1rem;
+    #title {
+      font-size: 2.5rem;
+      padding: 16px 0;
+    }
+    button.tool-btn {
+      padding: 12px 20px;
+      font-size: 1rem;
     }
   }
 </style>
 </head>
 <body data-theme="light">
-<button id="themeToggleBtn" aria-label="テーマ切り替え" title="テーマ切り替え">🌙</button>
-<header>ツールボックス</header>
-<main>
-  <button class="tool-btn" data-tool="calendar-memo.html" aria-label="カレンダー＆メモ帳を開く">カレンダー＆メモ帳</button>
-  <button class="tool-btn" data-tool="calculator.html" aria-label="電卓を開く">電卓</button>
-  <button class="tool-btn" data-tool="date-calculator.html" aria-label="日付計算ツールを開く">日付計算ツール</button>
-  <button class="tool-btn" data-tool="bmi-calculator.html" aria-label="BMI計算ツールを開く">BMI計算ツール</button>
-  <button class="tool-btn" data-tool="world-clock.html" aria-label="世界時計ツールを開く">世界時計ツール</button>
-  <button class="tool-btn" data-tool="unit-converter.html" aria-label="単位変換ツールを開く">単位変換ツール</button>
-  <button class="tool-btn" data-tool="color-picker.html" aria-label="カラーピッカー＆コード変換ツールを開く">カラーピッカー＆コード変換ツール</button>
-  <button class="tool-btn" data-tool="timer-stopwatch.html" aria-label="タイマー＆ストップウォッチを開く">タイマー＆ストップウォッチ</button>
-  <button class="tool-btn" data-tool="text-formatter.html" aria-label="テキストフォーマッター＆カウンターを開く">テキストフォーマッター＆カウンター</button>
-  <button class="tool-btn" data-tool="image-resize-compress.html" aria-label="画像リサイズ＆圧縮ツールを開く">画像リサイズ＆圧縮ツール</button>
-  <button class="tool-btn" data-tool="qr-code.html" aria-label="QRコードジェネレーター＆スキャナーを開く">QRコードジェネレーター＆スキャナー</button>
-  <button class="tool-btn" data-tool="word-quiz.html" aria-label="単語学習＆クイズツールを開く">単語学習＆クイズツール</button>
-  <button class="tool-btn" data-tool="weather.html" aria-label="リアルタイム天気ツールを開く">リアルタイム天気ツール</button>
-  <button class="tool-btn" data-tool="bookmarklet-generator.html" aria-label="ブックマークレット生成ツールを開く">ブックマークレット生成ツール</button>
-  <button class="tool-btn" data-tool="js-minifier.html" aria-label="JavaScript圧縮ツールを開く">JavaScript圧縮ツール</button>
-</main>
+<button id="themeToggleBtn" aria-label="テーマ切り替え" title="テーマ切り替え" style="position: fixed; top:12px; right:12px; background: var(--btn-bg); border:none; border-radius:12px; color: var(--color); font-weight:700; padding: 10px 16px; font-size:1.3rem; cursor:pointer; user-select:none; box-shadow:0 3px 6px rgba(125,145,246,0.7); transition:background 0.3s ease; z-index:1000; line-height:1;">🌙</button>
+
+<div id="title">ツールボックス</div>
+
+<div id="container">
+  <main>
+    <button class="tool-btn" data-tool="calendar-memo.html" aria-label="カレンダー＆メモ帳を開く">カレンダー＆メモ帳</button>
+    <button class="tool-btn" data-tool="calculator.html" aria-label="電卓を開く">電卓</button>
+    <button class="tool-btn" data-tool="date-calculator.html" aria-label="日付計算ツールを開く">日付計算ツール</button>
+    <button class="tool-btn" data-tool="bmi-calculator.html" aria-label="BMI計算ツールを開く">BMI計算ツール</button>
+    <button class="tool-btn" data-tool="world-clock.html" aria-label="世界時計ツールを開く">世界時計ツール</button>
+    <button class="tool-btn" data-tool="unit-converter.html" aria-label="単位変換ツールを開く">単位変換ツール</button>
+    <button class="tool-btn" data-tool="color-picker.html" aria-label="カラーピッカー＆コード変換ツールを開く">カラーピッカー＆コード変換ツール</button>
+    <button class="tool-btn" data-tool="timer-stopwatch.html" aria-label="タイマー＆ストップウォッチを開く">タイマー＆ストップウォッチ</button>
+    <button class="tool-btn" data-tool="text-formatter.html" aria-label="テキストフォーマッター＆カウンターを開く">テキストフォーマッター＆カウンター</button>
+    <button class="tool-btn" data-tool="image-resize-compress.html" aria-label="画像リサイズ＆圧縮ツールを開く">画像リサイズ＆圧縮ツール</button>
+    <button class="tool-btn" data-tool="qr-code.html" aria-label="QRコードジェネレーター＆スキャナーを開く">QRコードジェネレーター＆スキャナー</button>
+    <button class="tool-btn" data-tool="word-quiz.html" aria-label="単語学習＆クイズツールを開く">単語学習＆クイズツール</button>
+    <button class="tool-btn" data-tool="weather.html" aria-label="リアルタイム天気ツールを開く">リアルタイム天気ツール</button>
+    <button class="tool-btn" data-tool="js-minifier.html" aria-label="JavaScript圧縮ツールを開く">JavaScript圧縮ツール</button>
+    <button class="tool-btn" data-tool="bookmarklet-generator.html" aria-label="ブックマークレット生成ツールを開く">ブックマークレット生成ツール</button>
+  </main>
+</div>
+
 <footer>&copy; 2025 ツールボックス</footer>
+
 <script>
   document.querySelectorAll('button.tool-btn').forEach(button => {
     button.addEventListener('click', () => {
