@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JavaScript圧縮ツール | ツールボックス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Roboto Slab', serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #eef1f7;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #app {
+    background: #1e1e2f;
+    border-radius: 15px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    padding: 20px;
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    text-align: center;
+    user-select: none;
+  }
+  label, textarea, button {
+    width: 100%;
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  label {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+  }
+  textarea {
+    min-height: 150px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #3a3a67;
+    color: #eef1f7;
+    outline: none;
+    box-shadow: inset 2px 2px 5px #273065, inset -2px -2px 5px #4555a4;
+    resize: vertical;
+    font-family: monospace;
+    box-sizing: border-box;
+  }
+  button {
+    background: #7d91f6;
+    border: none;
+    color: #1e1e2f;
+    font-weight: 700;
+    padding: 14px 0;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(125,145,246,0.7);
+    transition: background 0.3s ease;
+    font-size: 1.1rem;
+  }
+  button:active {
+    background: #5a68bf;
+  }
+  #result {
+    margin-top: 16px;
+    background: #2c2c48;
+    border-radius: 12px;
+    padding: 16px;
+    min-height: 120px;
+    user-select: all;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  #copyBtn {
+    margin-top: 10px;
+  }
+  #copyStatus {
+    margin-top: 6px;
+    text-align: center;
+    font-weight: 700;
+    color: #a1c56c;
+    user-select: none;
+  }
+  @media (max-width: 620px) {
+    #app {
+      padding: 16px 12px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="app" role="application" aria-label="JavaScript圧縮ツール">
+    <h1>JavaScript圧縮ツール</h1>
+    <label for="jsInput">圧縮したいJavaScriptコードを入力</label>
+    <textarea id="jsInput" placeholder="function hello() { console.log('Hello, world!'); }" aria-label="JavaScriptコード入力"></textarea>
+
+    <button id="compressBtn">圧縮実行</button>
+
+    <div id="result" aria-live="polite" aria-atomic="true"></div>
+    <button id="copyBtn" style="display:none;">コピー</button>
+    <div id="copyStatus"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
+  <script>
+    (() => {
+      const jsInput = document.getElementById('jsInput');
+      const compressBtn = document.getElementById('compressBtn');
+      const resultDiv = document.getElementById('result');
+      const copyBtn = document.getElementById('copyBtn');
+      const copyStatus = document.getElementById('copyStatus');
+
+      compressBtn.addEventListener('click', async () => {
+        const code = jsInput.value.trim();
+        copyStatus.textContent = '';
+        copyBtn.style.display = 'none';
+        resultDiv.textContent = '';
+        if (!code) {
+          resultDiv.textContent = 'JavaScriptコードを入力してください。';
+          return;
+        }
+        try {
+          const minified = await Terser.minify(code, {
+            compress: { passes: 3 },
+            mangle: true,
+            format: { comments: false },
+            ecma: 2017,
+          });
+          if (minified.error) {
+            resultDiv.textContent = '圧縮エラー: ' + minified.error.message;
+            return;
+          }
+          resultDiv.textContent = minified.code;
+          copyBtn.style.display = 'block';
+        } catch (e) {
+          resultDiv.textContent = '圧縮に失敗しました: ' + e.message;
+        }
+      });
+
+      copyBtn.addEventListener('click', () => {
+        const code = resultDiv.textContent.trim();
+        if (!code) return;
+        navigator.clipboard.writeText(code).then(() => {
+          copyStatus.textContent = 'コピーしました！';
+        }).catch(() => {
+          copyStatus.textContent = 'コピーに失敗しました。手動で選択してください。';
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
