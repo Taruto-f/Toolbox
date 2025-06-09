@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>連立方程式計算ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet" />
+<style>
+:root {
+--color-bg: #ffffff;
+--color-text: #374151;
+--color-text-light: #6b7280;
+--color-primary: #111827;
+--color-accent: #2563eb;
+--color-accent-hover: #1d4ed8;
+--color-input-bg: #f9fafb;
+--color-card-bg: #f3f4f6;
+--radius: 0.75rem;
+--transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+* {
+box-sizing: border-box;
+}
+body {
+margin: 0;
+font-family: 'Poppins', sans-serif;
+background-color: var(--color-bg);
+color: var(--color-text);
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+min-height: 100vh;
+display: flex;
+justify-content: center;
+padding: 3rem 1rem;
+}
+main {
+max-width: 600px;
+width: 100%;
+}
+h1 {
+font-weight: 600;
+font-size: 3rem;
+margin-bottom: 1.5rem;
+text-align: center;
+color: var(--color-primary);
+}
+form {
+background: var(--color-card-bg);
+padding: 2rem 2.5rem;
+border-radius: var(--radius);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+gap: 1rem 2rem;
+margin-bottom: 2rem;
+}
+label {
+display: flex;
+flex-direction: column;
+font-weight: 600;
+font-size: 0.875rem;
+color: var(--color-text-light);
+}
+input[type="number"] {
+margin-top: 0.4rem;
+padding: 0.5rem;
+font-size: 1rem;
+border: 1.5px solid #d1d5db;
+border-radius: 0.5rem;
+background-color: var(--color-input-bg);
+transition: border-color var(--transition);
+}
+input[type="number"]:focus {
+outline: none;
+border-color: var(--color-accent);
+box-shadow: 0 0 6px var(--color-accent);
+}
+.equation-label {
+grid-column: span 3;
+font-size: 1.125rem;
+font-weight: 700;
+margin-top: 1rem;
+margin-bottom: 0.75rem;
+color: var(--color-primary);
+user-select: none;
+}
+button {
+grid-column: span 3;
+background-color: var(--color-accent);
+color: white;
+font-weight: 700;
+padding: 0.8rem 0;
+font-size: 1.05rem;
+border: none;
+border-radius: var(--radius);
+cursor: pointer;
+transition: background-color var(--transition), transform 0.2s ease;
+user-select: none;
+}
+button:hover,
+button:focus {
+background-color: var(--color-accent-hover);
+transform: scale(1.03);
+outline: none;
+}
+button:active {
+transform: scale(0.97);
+}
+#result {
+background: var(--color-card-bg);
+padding: 1.5rem 2rem;
+border-radius: var(--radius);
+box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+font-size: 1.125rem;
+font-weight: 600;
+color: var(--color-primary);
+min-height: 2.5em;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+@media (max-width: 480px) {
+form {
+grid-template-columns: 1fr 1fr;
+gap: 1rem 1rem;
+}
+.equation-label {
+grid-column: span 2;
+}
+button {
+grid-column: span 2;
+}
+}
+</style>
+</head>
+<body>
+<main role="main">
+<h1>連立方程式計算ツール</h1>
+<form id="solverForm" aria-label="連立方程式の係数入力フォーム">
+<div class="equation-label">1つ目の式: a?x + b?y = c?</div>
+<label for="a1">a? (xの係数)
+<input type="number" id="a1" name="a1" step="any" required aria-required="true" autocomplete="off" />
+</label>
+<label for="b1">b? (yの係数)
+<input type="number" id="b1" name="b1" step="any" required aria-required="true" autocomplete="off" />
+</label>
+<label for="c1">c? (定数項)
+<input type="number" id="c1" name="c1" step="any" required aria-required="true" autocomplete="off" />
+</label>
+
+<div class="equation-label">2つ目の式: a?x + b?y = c?</div>
+<label for="a2">a? (xの係数)
+<input type="number" id="a2" name="a2" step="any" required aria-required="true" autocomplete="off" />
+</label>
+<label for="b2">b? (yの係数)
+<input type="number" id="b2" name="b2" step="any" required aria-required="true" autocomplete="off" />
+</label>
+<label for="c2">c? (定数項)
+<input type="number" id="c2" name="c2" step="any" required aria-required="true" autocomplete="off" />
+</label>
+
+<button type="submit" aria-label="連立方程式を解く">計算する</button>
+</form>
+
+<section id="result" aria-live="polite" aria-atomic="true" role="region" aria-label="計算結果表示領域">
+ここに解が表示されます
+</section>
+</main>
+
+<script>
+(function(){
+const form = document.getElementById('solverForm');
+const result = document.getElementById('result');
+
+function solveLinearEquations(a1, b1, c1, a2, b2, c2) {
+// Solve system for x and y:
+// a1*x + b1*y = c1
+// a2*x + b2*y = c2
+// Using Cramer's rule:
+const det = a1*b2 - a2*b1;
+if (det === 0) {
+// Check for infinite or no solutions
+const detX = c1*b2 - c2*b1;
+const detY = a1*c2 - a2*c1;
+if (detX === 0 && detY === 0) {
+return { type: 'infinite' };
+} else {
+return { type: 'none' };
+}
+}
+const x = (c1*b2 - c2*b1)/det;
+const y = (a1*c2 - a2*c1)/det;
+return { type: 'unique', x, y };
+}
+
+function formatNumber(n) {
+if (Number.isInteger(n)) return n;
+return n.toFixed(5);
+}
+
+form.addEventListener('submit', (e) => {
+e.preventDefault();
+const a1 = parseFloat(form.a1.value);
+const b1 = parseFloat(form.b1.value);
+const c1 = parseFloat(form.c1.value);
+const a2 = parseFloat(form.a2.value);
+const b2 = parseFloat(form.b2.value);
+const c2 = parseFloat(form.c2.value);
+
+if ([a1,b1,c1,a2,b2,c2].some(n => Number.isNaN(n))) {
+result.textContent = "すべての係数に正しい数値を入力してください。";
+return;
+}
+
+const solution = solveLinearEquations(a1,b1,c1,a2,b2,c2);
+
+if (solution.type === 'none') {
+result.textContent = "解なし（矛盾しています）。";
+} else if (solution.type === 'infinite') {
+result.textContent = "解が無限に存在します。";
+} else {
+result.textContent = `解: x = ${formatNumber(solution.x)} , y = ${formatNumber(solution.y)}`;
+}
+});
+})();
+</script>
+</body>
+</html>
